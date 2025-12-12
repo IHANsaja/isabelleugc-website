@@ -6,12 +6,13 @@ import { Canvas } from "@react-three/fiber";
 import { Environment, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 // Animated wrapper component for the Penthouse
 const AnimatedPenthouse = (props: any) => {
     const groupRef = useRef<THREE.Group>(null);
 
-    useEffect(() => {
+    useGSAP(() => {
         if (groupRef.current) {
             // Create a slow shake animation using GSAP
             gsap.to(groupRef.current.rotation, {
@@ -56,15 +57,15 @@ const AnimatedPenthouse = (props: any) => {
 
 const PenthouseWrapper = () => {
     return (
-            <Canvas style={{ width: "100vw", height: "100vh" }}>
-                <ambientLight intensity={0.5} />
-                <directionalLight position={[10, 1, 10]} intensity={1} />
-                <PerspectiveCamera makeDefault position={[0, 15, 17]} />
-                <Environment preset="sunset" />
-                <Suspense>
-                    <AnimatedPenthouse position={[0, 10, -7]} scale={0.4} />
-                </Suspense>
-            </Canvas>
+        <Canvas style={{ width: "100vw", height: "100vh" }}>
+            <ambientLight intensity={0.5} />
+            <directionalLight position={[10, 1, 10]} intensity={1} />
+            <PerspectiveCamera makeDefault position={[0, 15, 17]} />
+            <Environment preset="sunset" />
+            <Suspense>
+                <AnimatedPenthouse position={[0, 10, -7]} scale={0.4} />
+            </Suspense>
+        </Canvas>
     );
 };
 

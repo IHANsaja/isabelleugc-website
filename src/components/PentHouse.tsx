@@ -1,7 +1,7 @@
 "use client";
 
 import * as THREE from 'three'
-import React, { useRef } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
 
@@ -16,6 +16,23 @@ type GLTFResult = GLTF & {
 
 export function Penthouse(props: any) {
   const { nodes, materials } = useGLTF('/models/penthouse.glb') as unknown as GLTFResult
+
+  useEffect(() => {
+    if (nodes) {
+      console.log('--- Penthouse Model Nodes ---');
+      Object.entries(nodes).forEach(([name, node]) => {
+        if ((node as any).isMesh) {
+          console.log(`Mesh: ${name}`);
+        } else if ((node as any).isBone) {
+          console.log(`Bone: ${name}`);
+        } else {
+          console.log(`Other (${node.type}): ${name}`);
+        }
+      });
+      console.log('--- End Nodes ---');
+    }
+  }, [nodes]);
+
   return (
     <group {...props} dispose={null}>
       <group scale={0.025}>
@@ -1297,4 +1314,4 @@ export function Penthouse(props: any) {
   )
 }
 
-useGLTF.preload('/Penthouses/penthouse.glb')
+useGLTF.preload('/models/penthouse.glb')
