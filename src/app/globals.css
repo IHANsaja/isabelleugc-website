@@ -24,3 +24,16 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* Custom class for 3D transforms */
+.perspective {
+  perspective: 1000px; /* Adjust the value for desired 3D depth */
+  display: flex; /* Important to contain the image properly */
+  align-items: center;
+  justify-content: center;
+}
+
+/* Utility to ensure 3D is respected inside the image */
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
