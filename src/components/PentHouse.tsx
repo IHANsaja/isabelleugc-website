@@ -37,6 +37,7 @@ export function Penthouse(props: any) {
     <group {...props} dispose={null}>
       <group position={[-2.442, 2.975, 7.418]}>
         <mesh
+          name="penthouse_door_left"
           castShadow
           receiveShadow
           geometry={nodes.penthouse_door_left.geometry}
@@ -44,6 +45,7 @@ export function Penthouse(props: any) {
           position={[-0.657, -1.178, 0.025]}
         />
         <mesh
+          name="penthouse_door_right"
           castShadow
           receiveShadow
           geometry={nodes.penthouse_door_right.geometry}
