@@ -3,12 +3,13 @@
 import { Suspense, useRef, useEffect, useState } from "react";
 import { Penthouse } from "./PentHouse";
 import { Canvas } from "@react-three/fiber";
-import { Environment, PerspectiveCamera } from "@react-three/drei";
+import { Environment, PerspectiveCamera, Html } from "@react-three/drei";
 import * as THREE from "three";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { useRouter } from "next/navigation";
+import Loading from "../app/loading";
 
 // Register ScrollTrigger
 gsap.registerPlugin(ScrollTrigger);
@@ -113,7 +114,11 @@ const PenthouseWrapper = () => {
                     <directionalLight position={[10, 1, 10]} intensity={1} />
                     <PerspectiveCamera makeDefault position={[0, 5, 12]} />
                     <Environment preset="sunset" />
-                    <Suspense fallback={null}>
+                    <Suspense fallback={
+                        <Html>
+                            <Loading />
+                        </Html>
+                    }>
                         <AnimatedPenthouse position={[0, 2, -5]} scale={[0.4, 0.4, 0.4]} />
                     </Suspense>
                 </Canvas>

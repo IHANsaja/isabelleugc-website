@@ -27,8 +27,10 @@ body {
 
 /* Custom class for 3D transforms */
 .perspective {
-  perspective: 1000px; /* Adjust the value for desired 3D depth */
-  display: flex; /* Important to contain the image properly */
+  perspective: 1000px;
+  /* Adjust the value for desired 3D depth */
+  display: flex;
+  /* Important to contain the image properly */
   align-items: center;
   justify-content: center;
 }
@@ -36,4 +38,36 @@ body {
 /* Utility to ensure 3D is respected inside the image */
 .transform-style-preserve-3d {
   transform-style: preserve-3d;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+html::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+html {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+/* Custom Loading Animation */
+@keyframes progress-line {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-progress-line {
+  animation: progress-line 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
