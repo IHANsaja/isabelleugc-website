@@ -73,7 +73,7 @@ const ExperienceScene = ({ onLock, onUnlock }: { onLock: () => void, onUnlock: (
         <>
             <ambientLight intensity={0.6} />
             <directionalLight position={[10, 10, 5]} intensity={1} />
-            <Environment preset="city" />
+            <Environment preset="sunset" />
 
             {/* Camera starts inside the penthouse */}
             <PerspectiveCamera makeDefault position={[0, 2, 0]} />
