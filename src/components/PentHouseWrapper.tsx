@@ -117,6 +117,28 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
             ease: "power2.in",
         }, 6);
 
+        // Camera angle rotation - rotate model to face camera as it moves
+        // Phase 1: Model moved right (positive X), rotate slightly to face camera
+        tl.to(groupRef.current.rotation, {
+            y: -0.15,  // Slight rotation to face camera (negative = rotate left to face)
+            duration: 3,
+            ease: "power2.out",
+        }, 0);
+
+        // Phase 2: Centre - rotate to face straight
+        tl.to(groupRef.current.rotation, {
+            y: -0.25,  // Rotate more as it moves further right
+            duration: 3,
+            ease: "power2.inOut",
+        }, 3.3);
+
+        // Phase 3: Back to facing straight for entry
+        tl.to(groupRef.current.rotation, {
+            y: 0,  // Face straight ahead for final approach
+            duration: 3.4,
+            ease: "power2.in",
+        }, 6);
+
         // Door Animation
         // Access doors via getObjectByName since we named them in PentHouse.tsx
         const leftDoor = groupRef.current.getObjectByName("penthouse_door_left");
