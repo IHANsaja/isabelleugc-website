@@ -2,7 +2,7 @@
 
 import { Suspense, useRef, useEffect, useState } from "react";
 import { Penthouse } from "./PentHouse";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { Environment, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 import gsap from "gsap";
@@ -18,58 +18,55 @@ interface DebugInfo {
     progress: number;
     phase: string;
     position: { x: number; y: number; z: number };
-    rotation: { x: number; y: number; z: number };
     scale: { x: number; y: number; z: number };
 }
 
-// Animated wrapper component for the Penthouse
 // Animated wrapper component for the Penthouse
 const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => void }) => {
     const groupRef = useRef<THREE.Group>(null);
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    const { camera } = useThree(); // Access the camera
 
     useGSAP(() => {
+        if (!groupRef.current) return;
+
         const tl = gsap.timeline({
             scrollTrigger: {
-                trigger: "body",
+                trigger: "body", // Use body as trigger for main scroll
                 start: "top top",
                 end: "bottom bottom",
                 scrub: 1.5,
                 onUpdate: (self) => {
-                    // Update debug info - tracking CAMERA now
+                    // Update debug info
                     if (props.onDebugUpdate && groupRef.current) {
                         const progress = self.progress;
-                        let phase = "Phase 1: Moving Left";
-                        // 4 Phases = 25% each
-                        if (progress > 0.25 && progress <= 0.50) {
-                            phase = "Phase 2: Center Approach";
-                        } else if (progress > 0.50 && progress <= 0.75) {
-                            phase = "Phase 3: Moving Right";
-                        } else if (progress > 0.75) {
-                            phase = "Phase 4: Final Entry";
+                        let phase = "Phase 1: Moving right";
+                        if (progress > 0.33 && progress <= 0.66) {
+                            phase = "Phase 2: Center transition";
+                        } else if (progress > 0.66) {
+                            phase = "Phase 3: Moving left";
                         }
 
                         props.onDebugUpdate({
                             progress: Math.round(progress * 100),
                             phase,
                             position: {
-                                x: parseFloat(camera.position.x.toFixed(2)),
-                                y: parseFloat(camera.position.y.toFixed(2)),
-                                z: parseFloat(camera.position.z.toFixed(2)),
+                                x: parseFloat(groupRef.current.position.x.toFixed(2)),
+                                y: parseFloat(groupRef.current.position.y.toFixed(2)),
+                                z: parseFloat(groupRef.current.position.z.toFixed(2)),
                             },
-                            rotation: {
-                                x: parseFloat(camera.rotation.x.toFixed(2)),
-                                y: parseFloat(camera.rotation.y.toFixed(2)),
-                                z: parseFloat(camera.rotation.z.toFixed(2)),
+                            scale: {
+                                x: parseFloat(groupRef.current.scale.x.toFixed(2)),
+                                y: parseFloat(groupRef.current.scale.y.toFixed(2)),
+                                z: parseFloat(groupRef.current.scale.z.toFixed(2)),
                             },
-                            scale: { x: 1, y: 1, z: 1 }, // Scale is constant now
                         });
                     }
 
+                    // Check if we are near the end to trigger loading/redirect
                     if (self.progress > 0.95 && !isLoading) {
                         setIsLoading(true);
+                        // Fade out effect could go here
                         setTimeout(() => {
                             router.push("/experience");
                         }, 500);
@@ -78,103 +75,91 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
             },
         });
 
-        // Ensure camera starts at initial position
-        camera.position.set(0, 5, 12);
-        camera.rotation.set(0, 0, 0); // Reset rotation to be sure
+        // 1. Initial Float Animation (matches previous idle state but subtle)
+        // We might want to kill this or blend it, but for now let's keep it simple
+        // or just let the scroll override it. 
+        // Actually, let's focus on the Scroll Interaction.
 
-        // --- CAMERA ANIMATION PATH (4 Phases, 3s each -> Total 12s) ---
-        
-        // Phase 1: Move Camera Left and Forward (0s - 3s)
-        tl.to(camera.position, {
-            x: -1,   // Camera moves left
-            y: 3,    // Height adjustment
-            z: 3,    // Move closer 
-            duration: 3,
-            ease: "sine.inOut",
+        // Scale Up Animation
+        tl.to(groupRef.current.scale, {
+            x: 5,
+            y: 5,
+            z: 5,
+            duration: 10,
+            ease: "power2.inOut",
         }, 0);
 
-        // Rotate camera to look at center
-        tl.to(camera.rotation, {
-            x: 0,
-            y: 0,
+        // Move Position with left → center → right movement pattern
+        // Phase 1: Move left and forward (0-3.3 seconds / first third)
+        tl.to(groupRef.current.position, {
+            x: 3.5,  // Move left
+            y: 3,   // Slight vertical adjustment
+            z: 0,   // Move forward a bit
             duration: 3,
-            ease: "sine.inOut",
+            ease: "power2.out",
         }, 0);
 
-
-        // Phase 2: Move Camera to Center/Left and Closer (3s - 6s)
-        tl.to(camera.position, {
-            x: -1,    // Stay left/center?
-            y: 3,     // Maintain height
-            z: -2.5,  // Much closer
+        // Phase 2: Move back to center and continue forward (3.3-6.6 seconds / middle third)
+        tl.to(groupRef.current.position, {
+            x: 2.5,   // Back to center
+            y: -2,  // Continue lowering
+            z: 0,   // Move closer
             duration: 3,
-            ease: "sine.inOut",
-        }, 3);
+            ease: "power2.inOut",
+        }, 3.3);
 
-         tl.to(camera.rotation, {
-            y: 0,    // Look straight
-            duration: 3,
-            ease: "sine.inOut",
-        }, 3);
-
-
-        // Phase 3: Move Camera Right (6s - 9s)
-        tl.to(camera.position, {
-            x: 0,    // Camera moves right
-            y: 3,    // Final height
-            z: -4,   // Final very close distance
-            duration: 6, // Reduced from 4 to 3 to fit timeline
-            ease: "sine.inOut",
+        // Phase 3: Move right and approach final position (6.6-10 seconds / last third)
+        tl.to(groupRef.current.position, {
+            x: 1,   // Move right
+            y: -2,  // Final vertical position
+            z: 1,   // Final z position
+            duration: 3.4,
+            ease: "power2.in",
         }, 6);
 
-        tl.to(camera.rotation, {
-            y: -1.4,  // Look left sharply
-            duration: 6,
-            ease: "sine.inOut",
+        // Camera angle rotation - rotate model to face camera as it moves
+        // Phase 1: Model moved right (positive X), rotate slightly to face camera
+        tl.to(groupRef.current.rotation, {
+            y: -0.15,  // Slight rotation to face camera (negative = rotate left to face)
+            duration: 3,
+            ease: "power2.out",
+        }, 0);
+
+        // Phase 2: Centre - rotate to face straight
+        tl.to(groupRef.current.rotation, {
+            y: -0.25,  // Rotate more as it moves further right
+            duration: 3,
+            ease: "power2.inOut",
+        }, 3.3);
+
+        // Phase 3: Back to facing straight for entry
+        tl.to(groupRef.current.rotation, {
+            y: 0,  // Face straight ahead for final approach
+            duration: 3.4,
+            ease: "power2.in",
         }, 6);
 
+        // Door Animation
+        // Access doors via getObjectByName since we named them in PentHouse.tsx
+        const leftDoor = groupRef.current.getObjectByName("penthouse_door_left");
+        const rightDoor = groupRef.current.getObjectByName("penthouse_door_right");
 
-        // Phase 4: Final Entry - Straighten and Enter (starts at 12s because Phase 3 ends at 6+6=12s)
-        tl.to(camera.position, {
-            x: 0,     // Center align
-            y: 3,     // Slight dip for entry?
-            z: -5,    // Pass through (-5 as requested)
-            duration: 2,
-            ease: "sine.in",
-        }, 12);
+        if (leftDoor && rightDoor) {
+            // Open Doors when camera gets near (around 50% of the timeline)
+            tl.to(leftDoor.rotation, {
+                y: -Math.PI / 2, // Rotate 90 degrees outward
+                duration: 3,
+                ease: "power1.inOut",
+            }, 1);
 
-        tl.to(camera.rotation, {
-            y: 0,     // Face straight (0 as requested)
-            duration: 2,
-            ease: "sine.in",
-        }, 12);
-
-
-        // Door Animation (Aligned to timeline)
-        if (groupRef.current) {
-             const leftDoor = groupRef.current.getObjectByName("penthouse_door_left");
-             const rightDoor = groupRef.current.getObjectByName("penthouse_door_right");
-
-             if (leftDoor && rightDoor) {
-                 // Open doors around Phase 2-3 transition usually, or sticking to middle
-                 // Previous was at '1' which is very early in old timeline (0-10) -> 10%
-                 // Let's open them as we get close, maybe around 6s (50% progress)
-                 
-                 tl.to(leftDoor.rotation, {
-                     y: -Math.PI / 2,
-                     duration: 3,
-                     ease: "sine.inOut",
-                 }, 1); // Start at 4.5s (between phase 2 and 3)
-
-                 tl.to(rightDoor.rotation, {
-                     y: Math.PI / 2,
-                     duration: 3,
-                     ease: "sine.inOut",
-                 }, 1);
-             }
+            tl.to(rightDoor.rotation, {
+                y: Math.PI / 2, // Rotate 90 degrees outward
+                duration: 3,
+                ease: "power1.inOut",
+            }, 1);
         }
 
-    }, [isLoading, router, camera]);
+    }, [isLoading, router]);
 
     return (
         <>
@@ -258,14 +243,6 @@ const PenthouseWrapper = () => {
                         <div><span style={{ color: "#ff6b6b" }}>X:</span> {debugInfo.scale.x}</div>
                         <div><span style={{ color: "#4ecdc4" }}>Y:</span> {debugInfo.scale.y}</div>
                         <div><span style={{ color: "#45b7d1" }}>Z:</span> {debugInfo.scale.z}</div>
-                    </div>
-                    <div style={{ marginTop: "8px", marginBottom: "8px", borderTop: "1px solid #333", paddingTop: "8px" }}>
-                        <span style={{ color: "#888" }}>Rotation:</span>
-                    </div>
-                    <div style={{ paddingLeft: "12px" }}>
-                        <div><span style={{ color: "#ff6b6b" }}>X:</span> {debugInfo.rotation.x}</div>
-                        <div><span style={{ color: "#4ecdc4" }}>Y:</span> {debugInfo.rotation.y}</div>
-                        <div><span style={{ color: "#45b7d1" }}>Z:</span> {debugInfo.rotation.z}</div>
                     </div>
                 </div>
             )}
