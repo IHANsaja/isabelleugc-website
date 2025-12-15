@@ -138,7 +138,8 @@ export default function ExperiencePage() {
                         textAlign: "center"
                     }}>
                         <p>Click to start navigation</p>
-                        <p style={{fontSize: "0.8em", opacity: 0.7}}>WASD to move, Mouse to look</p>
+                        <p style={{fontSize: "0.8em", opacity: 0.7}}>WASD to move, Mouse to look, ESC to exit</p>
+                        {/* <p style={{fontSize: "0.8em", opacity: 0.7}}>ESC to exit</p> */}
                     </div>
                 )}
             </div>
