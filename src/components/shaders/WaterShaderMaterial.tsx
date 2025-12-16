@@ -79,7 +79,7 @@ const WaterShaderMaterial = shaderMaterial(
         vec4 sh = -step(h, vec4(0.0));
 
         vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
-        vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+        vec4 a1 = b1.xzyw + s1.xzyw*zzww.zzww ;
 
         vec3 p0 = vec3(a0.xy,h.x);
         vec3 p1 = vec3(a0.zw,h.y);
@@ -160,11 +160,9 @@ const WaterShaderMaterial = shaderMaterial(
 extend({ WaterShaderMaterial });
 
 // 3. Declare Type for TS
-declare global {
-    namespace JSX {
-        interface IntrinsicElements {
-            waterShaderMaterial: any; // Using any for simplicity with Drei shaders
-        }
+declare module '@react-three/fiber' {
+    interface ThreeElements {
+        waterShaderMaterial: any;
     }
 }
 
