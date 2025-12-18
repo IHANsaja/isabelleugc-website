@@ -161,7 +161,7 @@ const HudOverlay: React.FC = () => {
                 </div>
 
                 <div className="hud-btn-wrapper">
-                    <button className="hud-btn-inner pointer-events-auto group flex items-center gap-3 px-6 py-3 bg-transparent border border-main-black/30 hover:bg-main-black hover:text-accent-cream transition-all duration-300 rounded-sm mt-4">
+                    <button className="cursor-pointer hud-btn-inner pointer-events-auto group flex items-center gap-3 px-6 py-3 bg-transparent border border-main-black/30 hover:bg-main-black hover:text-accent-cream transition-all duration-300 rounded-sm mt-4">
                         <span className="font-instrument-sans text-xs tracking-[0.2em] uppercase font-bold text-main-black group-hover:text-accent-cream">Explore Content</span>
                         <div className="w-2 h-2 bg-main-black group-hover:bg-accent-cream transition-colors rotate-45" />
                     </button>

@@ -45,7 +45,7 @@ const Header: React.FC = () => {
           {/* Menu button on the right */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`px-4 py-2 text-black font-instrument-sans text-[10px] tracking-widest uppercase rounded-full shadow-lg transition-all duration-300 z-50 relative ${isMenuOpen ? 'bg-white hover:bg-gray-200' : 'bg-[#C5BDB6] hover:bg-opacity-90'
+            className={`cursor-pointer px-4 py-2 text-black font-instrument-sans text-[10px] tracking-widest uppercase rounded-full shadow-lg transition-all duration-300 z-50 relative ${isMenuOpen ? 'bg-white hover:bg-gray-200' : 'bg-[#C5BDB6] hover:bg-opacity-90'
               }`}
             aria-label={isMenuOpen ? "Close Menu" : "Open Menu"}
           >
