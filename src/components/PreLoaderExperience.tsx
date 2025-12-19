@@ -22,7 +22,7 @@ const PenthouseHologram = ({
     // 1. Initialize Audio (Loop disabled because we trigger it manually)
     const sonarSound = useMemo(() => {
         if (typeof window !== "undefined") {
-            return new Audio('/assets/sounds/SFX/Laser_Sonic_Burst.mp3');
+            return new Audio('/sounds/SFX/Laser_Sonic_Burst.mp3');
         }
         return null;
     }, []);
