@@ -6,7 +6,7 @@ import { Environment, PointerLockControls, KeyboardControls, useKeyboardControls
 import { Suspense, useRef, useEffect, useState } from "react";
 import { Penthouse } from "@/components/PentHouse";
 import * as THREE from "three";
-import { stopAllAudio } from "@/utils/audioManager";
+import { stopAllAudio, stopWindGrassSound } from "@/utils/audioManager";
 
 // Define controls
 enum Controls {
@@ -32,6 +32,9 @@ const Player = () => {
     const velocityY = useRef(0);
     const isJumping = useRef(false);
 
+    // Track if player has moved to stop wind-n-grass sound
+    const hasMovedRef = useRef(false);
+
     useFrame((state, delta) => {
         const { forward, backward, left, right, sprint, jump } = get()
 
@@ -43,6 +46,12 @@ const Player = () => {
 
         // Movement (X/Z)
         if (forward || backward || left || right) {
+            // Stop wind-n-grass sound on first movement
+            if (!hasMovedRef.current) {
+                stopWindGrassSound();
+                hasMovedRef.current = true;
+            }
+
             const moveX = direction.current.x * speed * delta;
             const moveZ = direction.current.z * speed * delta;
             camera.translateX(moveX);

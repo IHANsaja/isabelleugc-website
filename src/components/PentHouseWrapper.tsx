@@ -9,7 +9,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { useRouter } from "next/navigation";
-import { startWindGrassSound } from "@/utils/audioManager";
+
 
 // Register ScrollTrigger
 gsap.registerPlugin(ScrollTrigger);
@@ -218,11 +218,6 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
 };
 
 const PenthouseWrapper = () => {
-    // Start wind and grass ambient sound using global audio manager
-    useEffect(() => {
-        startWindGrassSound();
-    }, []);
-
     return (
         <div style={{ height: "400vh", position: "relative" }}> {/* Add scrollable height */}
             <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%" }}>

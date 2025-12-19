@@ -8,7 +8,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { LoaderShaderMaterial } from "./shaders/LoaderShaderMaterial";
 import * as THREE from "three";
 import { Suspense, useMemo } from "react";
-import { startExperienceBackgroundMusic } from "@/utils/audioManager";
+import { startExperienceBackgroundMusic, startWindGrassSound } from "@/utils/audioManager";
 
 const PenthouseHologram = ({
     globalMouse,
@@ -61,9 +61,10 @@ const PenthouseHologram = ({
             // After 10 seconds, the final holographic effect starts and pulses stop
             const inPulsePhase = holdTimeRef.current < 10.0;
 
-            // Stop landing intro music when holding starts
-            if (landingIntroMusic && !landingIntroMusic.paused) {
+            // Stop landing intro music when holding completes (10 seconds)
+            if (!inPulsePhase && landingIntroMusic && !landingIntroMusic.paused) {
                 landingIntroMusic.pause();
+                landingIntroMusic.currentTime = 0;
             }
 
             if (inPulsePhase) {
@@ -300,14 +301,21 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
     }, [showEnter]);
 
     const handleEnterClick = () => {
-        // Stop synthetic music and start experience background music
+        // Stop synthetic music
         if (syntheticMusic.current) {
             syntheticMusic.current.pause();
             syntheticMusic.current.currentTime = 0;
         }
 
-        // Start experience background music using global audio manager
+        // Stop landing intro if still playing
+        if (landingIntroMusic.current) {
+            landingIntroMusic.current.pause();
+            landingIntroMusic.current.currentTime = 0;
+        }
+
+        // Start both experience background music and wind-n-grass using global audio manager
         startExperienceBackgroundMusic();
+        startWindGrassSound();
 
         if (onEnter) onEnter();
         if (containerRef.current) {
