@@ -22,13 +22,23 @@ const PenthouseHologram = ({
     // 1. Initialize Audio (Loop disabled because we trigger it manually)
     const sonarSound = useMemo(() => {
         if (typeof window !== "undefined") {
-            return new Audio('/assets/sounds/SFX/Laser_Sonic_Burst.mp3');
+            return new Audio('/sounds/SFX/Laser_Sonic_Burst.mp3');
         }
         return null;
     }, []);
 
+    const modeInitiationSound = useMemo(() => {
+        if (typeof window !== "undefined") {
+            return new Audio('/sounds/SFX/Mode_Initiation.mp3');
+        }
+        return null;
+    }, []);
+
+    //comment ekak damma
+
     const material = useMemo(() => new LoaderShaderMaterial(), []);
     const holdTimeRef = useRef(0);
+    const modeInitiationPlayedRef = useRef(false);
 
     // Shader sonar wave timing: scanSpeed = 0.4, distance = 24 units
     // Wave cycle period = distance / speed = 24 / 0.4 = 60 seconds per full cycle
@@ -68,10 +78,19 @@ const PenthouseHologram = ({
                     sonarSound.pause();
                     sonarSound.currentTime = 0;
                 }
+
+                // Play Mode_Initiation sound once when entering final phase
+                if (!modeInitiationPlayedRef.current && modeInitiationSound) {
+                    modeInitiationSound.currentTime = 0;
+                    modeInitiationSound.volume = 0.5;
+                    modeInitiationSound.play().catch(() => { });
+                    modeInitiationPlayedRef.current = true;
+                }
             }
         } else {
             // Reset everything on release
             holdTimeRef.current = 0;
+            modeInitiationPlayedRef.current = false;
             if (sonarSound) {
                 sonarSound.pause();
                 sonarSound.currentTime = 0;
