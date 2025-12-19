@@ -9,6 +9,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { useRouter } from "next/navigation";
+import { stopExperienceBackgroundMusic } from "@/utils/audioManager";
 
 // Register ScrollTrigger
 gsap.registerPlugin(ScrollTrigger);
@@ -80,6 +81,11 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
                         setTimeout(() => {
                             router.push("/experience");
                         }, 500);
+                    }
+
+                    // Stop experience background music when entering penthouse (Phase 4)
+                    if (self.progress > 0.7) {
+                        stopExperienceBackgroundMusic();
                     }
                 },
             },
@@ -217,6 +223,25 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
 };
 
 const PenthouseWrapper = () => {
+    // Wind and grass ambient sound
+    useEffect(() => {
+        let windGrassSound: HTMLAudioElement | null = null;
+
+        if (typeof window !== "undefined") {
+            windGrassSound = new Audio('/sounds/SFX/wind-n-grass.mp3');
+            windGrassSound.loop = true;
+            windGrassSound.volume = 0.3;
+            windGrassSound.play().catch(() => { });
+        }
+
+        return () => {
+            if (windGrassSound) {
+                windGrassSound.pause();
+                windGrassSound.currentTime = 0;
+            }
+        };
+    }, []);
+
     return (
         <div style={{ height: "400vh", position: "relative" }}> {/* Add scrollable height */}
             <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%" }}>

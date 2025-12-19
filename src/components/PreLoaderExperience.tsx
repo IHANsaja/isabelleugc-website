@@ -8,13 +8,18 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { LoaderShaderMaterial } from "./shaders/LoaderShaderMaterial";
 import * as THREE from "three";
 import { Suspense, useMemo } from "react";
+import { startExperienceBackgroundMusic } from "@/utils/audioManager";
 
 const PenthouseHologram = ({
     globalMouse,
-    interactionState
+    interactionState,
+    landingIntroMusic,
+    syntheticMusic
 }: {
     globalMouse: React.MutableRefObject<THREE.Vector2>,
-    interactionState: React.MutableRefObject<{ isHolding: boolean; clickPos: THREE.Vector2; clickTime: number; }>
+    interactionState: React.MutableRefObject<{ isHolding: boolean; clickPos: THREE.Vector2; clickTime: number; }>,
+    landingIntroMusic: HTMLAudioElement | null,
+    syntheticMusic: HTMLAudioElement | null
 }) => {
     const { scene } = useGLTF('/models/penthouse.glb');
     const clonedScene = useMemo(() => scene.clone(), [scene]);
@@ -34,11 +39,10 @@ const PenthouseHologram = ({
         return null;
     }, []);
 
-    //comment ekak damma
-
     const material = useMemo(() => new LoaderShaderMaterial(), []);
     const holdTimeRef = useRef(0);
     const modeInitiationPlayedRef = useRef(false);
+    const syntheticMusicPlayedRef = useRef(false);
 
     // Shader sonar wave timing: scanSpeed = 0.4, distance = 24 units
     // Wave cycle period = distance / speed = 24 / 0.4 = 60 seconds per full cycle
@@ -57,6 +61,11 @@ const PenthouseHologram = ({
             // After 10 seconds, the final holographic effect starts and pulses stop
             const inPulsePhase = holdTimeRef.current < 10.0;
 
+            // Stop landing intro music when holding starts
+            if (landingIntroMusic && !landingIntroMusic.paused) {
+                landingIntroMusic.pause();
+            }
+
             if (inPulsePhase) {
                 // Sync with shader's sonar wave cycle
                 // Calculate current position in the wave cycle
@@ -69,7 +78,6 @@ const PenthouseHologram = ({
                 // Play sound at the start of each wave cycle
                 if (waveReset && sonarSound) {
                     sonarSound.currentTime = 0;
-                    sonarSound.volume = 0.4;
                     sonarSound.play().catch(() => { });
                 }
             } else {
@@ -86,14 +94,31 @@ const PenthouseHologram = ({
                     modeInitiationSound.play().catch(() => { });
                     modeInitiationPlayedRef.current = true;
                 }
+
+                // Play synthetic music loop after Mode_Initiation
+                if (!syntheticMusicPlayedRef.current && syntheticMusic) {
+                    syntheticMusic.currentTime = 0;
+                    syntheticMusic.play().catch(() => { });
+                    syntheticMusicPlayedRef.current = true;
+                }
             }
         } else {
             // Reset everything on release
             holdTimeRef.current = 0;
             modeInitiationPlayedRef.current = false;
+            syntheticMusicPlayedRef.current = false;
             if (sonarSound) {
                 sonarSound.pause();
                 sonarSound.currentTime = 0;
+            }
+            if (syntheticMusic) {
+                syntheticMusic.pause();
+                syntheticMusic.currentTime = 0;
+            }
+            // Restart landing intro music when released
+            if (landingIntroMusic) {
+                landingIntroMusic.currentTime = 0;
+                landingIntroMusic.play().catch(() => { });
             }
         }
 
@@ -115,15 +140,24 @@ const PenthouseHologram = ({
 
 const ShaderBackground = ({
     globalMouse,
-    interactionState
+    interactionState,
+    landingIntroMusic,
+    syntheticMusic
 }: {
     globalMouse: React.MutableRefObject<THREE.Vector2>,
-    interactionState: React.MutableRefObject<{ isHolding: boolean; clickPos: THREE.Vector2; clickTime: number; }>
+    interactionState: React.MutableRefObject<{ isHolding: boolean; clickPos: THREE.Vector2; clickTime: number; }>,
+    landingIntroMusic: HTMLAudioElement | null,
+    syntheticMusic: HTMLAudioElement | null
 }) => (
     <div className="absolute inset-0 w-full h-full">
         <Canvas camera={{ position: [0, 0, 10], fov: 100 }} gl={{ preserveDrawingBuffer: true, antialias: true }}>
             <Suspense fallback={null}>
-                <PenthouseHologram globalMouse={globalMouse} interactionState={interactionState} />
+                <PenthouseHologram
+                    globalMouse={globalMouse}
+                    interactionState={interactionState}
+                    landingIntroMusic={landingIntroMusic}
+                    syntheticMusic={syntheticMusic}
+                />
             </Suspense>
             <ambientLight intensity={1} />
         </Canvas>
@@ -152,6 +186,38 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
         clickPos: new THREE.Vector2(-10, -10),
         clickTime: -100
     });
+
+    // Audio references
+    const landingIntroMusic = useRef<HTMLAudioElement | null>(null);
+    const syntheticMusic = useRef<HTMLAudioElement | null>(null);
+
+    // Initialize audio on mount
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            // Landing intro music
+            landingIntroMusic.current = new Audio('/sounds/SFX/landing_intro.mp3');
+            landingIntroMusic.current.loop = true;
+            landingIntroMusic.current.volume = 0.3;
+            landingIntroMusic.current.play().catch(() => { });
+
+            // Synthetic music
+            syntheticMusic.current = new Audio('/sounds/SFX/synthetic-music.mp3');
+            syntheticMusic.current.loop = true;
+            syntheticMusic.current.volume = 0.4;
+        }
+
+        return () => {
+            // Cleanup all audio on unmount
+            if (landingIntroMusic.current) {
+                landingIntroMusic.current.pause();
+                landingIntroMusic.current = null;
+            }
+            if (syntheticMusic.current) {
+                syntheticMusic.current.pause();
+                syntheticMusic.current = null;
+            }
+        };
+    }, []);
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -219,6 +285,15 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
     }, [showEnter]);
 
     const handleEnterClick = () => {
+        // Stop synthetic music and start experience background music
+        if (syntheticMusic.current) {
+            syntheticMusic.current.pause();
+            syntheticMusic.current.currentTime = 0;
+        }
+
+        // Start experience background music using global audio manager
+        startExperienceBackgroundMusic();
+
         if (onEnter) onEnter();
         if (containerRef.current) {
             gsap.to(containerRef.current, {
@@ -237,7 +312,12 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
 
     return (
         <div ref={containerRef} className="fixed inset-0 z-[9999] pointer-events-auto flex items-center justify-center font-instrument-sans text-[#231F20] bg-[#F6F3E8]">
-            <ShaderBackground globalMouse={globalMouse} interactionState={interactionState} />
+            <ShaderBackground
+                globalMouse={globalMouse}
+                interactionState={interactionState}
+                landingIntroMusic={landingIntroMusic.current}
+                syntheticMusic={syntheticMusic.current}
+            />
             <div ref={contentRef} className="absolute inset-0 z-20 w-full h-full pointer-events-none">
 
                 {/* UI CORNERS */}
