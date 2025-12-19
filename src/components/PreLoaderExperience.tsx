@@ -8,7 +8,8 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { LoaderShaderMaterial } from "./shaders/LoaderShaderMaterial";
 import * as THREE from "three";
 import { Suspense, useMemo } from "react";
-import { startExperienceBackgroundMusic, startWindGrassSound } from "@/utils/audioManager";
+import { startExperienceBackgroundMusic, startWindGrassSound, connectSourceToAnalyser } from "@/utils/audioManager";
+import { useSound } from "@/context/SoundContext";
 
 const PenthouseHologram = ({
     globalMouse,
@@ -27,14 +28,18 @@ const PenthouseHologram = ({
     // 1. Initialize Audio (Loop disabled because we trigger it manually)
     const sonarSound = useMemo(() => {
         if (typeof window !== "undefined") {
-            return new Audio('/sounds/SFX/Laser_Sonic_Burst.mp3');
+            const audio = new Audio('/sounds/SFX/Laser_Sonic_Burst.mp3');
+            connectSourceToAnalyser(audio);
+            return audio;
         }
         return null;
     }, []);
 
     const modeInitiationSound = useMemo(() => {
         if (typeof window !== "undefined") {
-            return new Audio('/sounds/SFX/Mode_Initiation.mp3');
+            const audio = new Audio('/sounds/SFX/Mode_Initiation.mp3');
+            connectSourceToAnalyser(audio);
+            return audio;
         }
         return null;
     }, []);
@@ -49,6 +54,14 @@ const PenthouseHologram = ({
     // But the wave travels 24 units total, creating a pulse every time it resets
     // fract(uTime * 0.4) resets every 1/0.4 = 2.5 seconds
     const SONAR_CYCLE = 2.5; // Matches shader's scan wave reset period
+
+    const { isSoundEnabled } = useSound();
+
+    // Sync mute state for local sounds
+    useEffect(() => {
+        if (sonarSound) sonarSound.muted = !isSoundEnabled;
+        if (modeInitiationSound) modeInitiationSound.muted = !isSoundEnabled;
+    }, [isSoundEnabled, sonarSound, modeInitiationSound]);
 
     useFrame((state, delta) => {
         material.uTime += delta;
@@ -193,6 +206,8 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
     const syntheticMusic = useRef<HTMLAudioElement | null>(null);
     const landingIntroStarted = useRef(false);
 
+    const { isSoundEnabled } = useSound();
+
     // Initialize audio on mount
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -200,6 +215,8 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
             landingIntroMusic.current = new Audio('/sounds/SFX/landing_intro.mp3');
             landingIntroMusic.current.loop = true;
             landingIntroMusic.current.volume = 0.3;
+            landingIntroMusic.current.muted = !isSoundEnabled;
+            connectSourceToAnalyser(landingIntroMusic.current);
 
             // Try to play, but it might be blocked by browser
             landingIntroMusic.current.play().then(() => {
@@ -213,6 +230,8 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
             syntheticMusic.current = new Audio('/sounds/SFX/synthetic-music.mp3');
             syntheticMusic.current.loop = true;
             syntheticMusic.current.volume = 0.4;
+            syntheticMusic.current.muted = !isSoundEnabled;
+            connectSourceToAnalyser(syntheticMusic.current);
         }
 
         return () => {
@@ -227,6 +246,16 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
             }
         };
     }, []);
+
+    // Sync mute state on change
+    useEffect(() => {
+        if (landingIntroMusic.current) {
+            landingIntroMusic.current.muted = !isSoundEnabled;
+        }
+        if (syntheticMusic.current) {
+            syntheticMusic.current.muted = !isSoundEnabled;
+        }
+    }, [isSoundEnabled]);
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #F6F3E8;
-  --foreground: #231F20;
+  --background: #f6f3e8;
+  --foreground: #231f20;
 }
 
 @theme inline {
@@ -14,29 +14,29 @@
 
   /* New Palette */
   /* Main */
-  --color-main-white: #FFFFFF;
-  --color-main-black: #231F20;
-  --color-main-grey: #CCCCCC;
+  --color-main-white: #ffffff;
+  --color-main-black: #231f20;
+  --color-main-grey: #cccccc;
 
   /* Backgrounds */
   --color-bg-black: #000000;
-  --color-bg-cream: #F6F3E8;
+  --color-bg-cream: #f6f3e8;
 
   /* Accents */
-  --color-accent-cream: #FFFDF5;
-  --color-accent-bronze: #D2926E;
+  --color-accent-cream: #fffdf5;
+  --color-accent-bronze: #d2926e;
 
   /* Secondary */
-  --color-sec-gold: #C9AB6A;
-  --color-sec-beige: #C5BDB6;
-  --color-sec-light-gold: #D8AB71;
+  --color-sec-gold: #c9ab6a;
+  --color-sec-beige: #c5bdb6;
+  --color-sec-light-gold: #d8ab71;
   --color-sec-dark-grey: #777470;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #F6F3E8;
-    --foreground: #F6F3E8;
+    --background: #f6f3e8;
+    --foreground: #f6f3e8;
   }
 }
 
@@ -104,4 +104,17 @@ html {
 
 .animate-progress-line {
   animation: progress-line 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Sound Wave Animation */
+@keyframes sound-wave {
+  0% {
+    height: 4px;
+  }
+  50% {
+    height: 16px;
+  }
+  100% {
+    height: 4px;
+  }
 }

@@ -130,6 +130,9 @@ export default function ExperiencePage() {
                 router.push("/");
             }
         };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [router]);
 
     // Handle lock with cooldown to prevent double-click freeze
     const handleLock = () => {
@@ -138,6 +141,10 @@ export default function ExperiencePage() {
         setCanLock(false);
         // Re-enable after 1 second
         setTimeout(() => setCanLock(true), 1000);
+    };
+
+    const handleUnlock = () => {
+        setIsLocked(false);
     };
 
     useEffect(() => {
