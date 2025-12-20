@@ -6,12 +6,13 @@ import { setGlobalMute } from "@/utils/audioManager";
 interface SoundContextType {
     isSoundEnabled: boolean;
     toggleSound: () => void;
+    mounted: boolean;
 }
 
 const SoundContext = createContext<SoundContextType | undefined>(undefined);
 
 export const SoundProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+    const [isSoundEnabled, setIsSoundEnabled] = useState(false);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -21,6 +22,9 @@ export const SoundProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             const enabled = stored === "true";
             setIsSoundEnabled(enabled);
             setGlobalMute(!enabled);
+        } else {
+            // No stored value - use default (muted)
+            setGlobalMute(true);
         }
         setMounted(true);
     }, []);
@@ -36,7 +40,7 @@ export const SoundProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     return (
-        <SoundContext.Provider value={{ isSoundEnabled, toggleSound }}>
+        <SoundContext.Provider value={{ isSoundEnabled, toggleSound, mounted }}>
             {children}
         </SoundContext.Provider>
     );
