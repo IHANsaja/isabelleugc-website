@@ -5,7 +5,9 @@ import { useSound } from "@/context/SoundContext";
 import { getAudioAnalyser, resumeAudioContext } from "@/utils/audioManager";
 
 const SoundButton = () => {
-    const { isSoundEnabled, toggleSound } = useSound();
+    const { isSoundEnabled, toggleSound, mounted } = useSound();
+    // Treat as muted if not yet mounted (avoids hydration mismatch)
+    const effectiveSoundEnabled = mounted && isSoundEnabled;
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const rafRef = useRef<number>(0);
 
@@ -46,7 +48,7 @@ const SoundButton = () => {
             lastTimestamp = timestamp;
 
             // Track playback time when sound is enabled
-            if (isSoundEnabled && analyser) {
+            if (effectiveSoundEnabled && analyser) {
                 playbackTime += deltaTime;
             } else {
                 playbackTime = 0; // Reset when muted
@@ -80,7 +82,7 @@ const SoundButton = () => {
             ctx.lineWidth = 1;
             ctx.stroke();
 
-            if (isSoundEnabled && analyser) {
+            if (effectiveSoundEnabled && analyser) {
                 const bufferLength = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferLength);
                 analyser.getByteTimeDomainData(dataArray);
@@ -157,13 +159,13 @@ const SoundButton = () => {
         return () => {
             if (rafRef.current) cancelAnimationFrame(rafRef.current);
         };
-    }, [isSoundEnabled]);
+    }, [effectiveSoundEnabled, mounted]);
 
     return (
         <button
             onClick={handleToggle}
             className="fixed top-6 left-0 right-0 mx-auto w-fit z-[10000] flex flex-col items-center gap-2 group cursor-none pointer-events-auto"
-            aria-label={isSoundEnabled ? "Mute sound" : "Unmute sound"}
+            aria-label={effectiveSoundEnabled ? "Mute sound" : "Unmute sound"}
         >
             <div className="relative w-16 h-16 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-xl border border-white/10 transition-all duration-300 hover:bg-black/40 hover:border-white/20 active:scale-95 overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                 {/* Radial Visualizer Canvas */}
@@ -175,7 +177,7 @@ const SoundButton = () => {
 
             {/* Label */}
             <span className="text-[9px] font-bold tracking-[0.2em] text-white mix-blend-difference uppercase">
-                {isSoundEnabled ? "Sound" : "Muted"}
+                {effectiveSoundEnabled ? "Sound" : "Muted"}
             </span>
         </button>
     );

@@ -3,7 +3,7 @@
 
 let experienceBackgroundMusic: HTMLAudioElement | null = null;
 let windGrassSound: HTMLAudioElement | null = null;
-let isGlobalMuted: boolean = false;
+let isGlobalMuted: boolean = true;
 
 export const setGlobalMute = (muted: boolean) => {
     isGlobalMuted = muted;
