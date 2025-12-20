@@ -3,6 +3,14 @@
 :root {
   --background: #f6f3e8;
   --foreground: #231f20;
+
+  --theme-bg: var(--background);
+  --theme-fg: var(--foreground);
+}
+
+[data-theme="night"] {
+  --theme-bg: #0a0a0a;
+  --theme-fg: #f6f3e8;
 }
 
 @theme inline {
@@ -15,12 +23,14 @@
   /* New Palette */
   /* Main */
   --color-main-white: #ffffff;
-  --color-main-black: #231f20;
+  --color-main-black: var(--theme-fg);
   --color-main-grey: #cccccc;
 
   /* Backgrounds */
   --color-bg-black: #000000;
   --color-bg-cream: #f6f3e8;
+  --color-theme-bg: var(--theme-bg);
+  --color-theme-fg: var(--theme-fg);
 
   /* Accents */
   --color-accent-cream: #fffdf5;
@@ -36,14 +46,15 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #f6f3e8;
-    --foreground: #f6f3e8;
+    --foreground: #231f20;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--theme-bg);
+  color: var(--theme-fg);
   cursor: none;
+  transition: background 1.5s ease-in-out, color 1s ease-in-out;
 }
 
 /* Hide default cursor globally */
@@ -111,9 +122,11 @@ html {
   0% {
     height: 4px;
   }
+
   50% {
     height: 16px;
   }
+
   100% {
     height: 4px;
   }

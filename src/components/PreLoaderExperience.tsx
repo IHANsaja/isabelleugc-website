@@ -346,6 +346,9 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
         startExperienceBackgroundMusic();
         startWindGrassSound();
 
+        // Dispatch experience start event for time-based scenery
+        window.dispatchEvent(new CustomEvent("experience:start"));
+
         if (onEnter) onEnter();
         if (containerRef.current) {
             gsap.to(containerRef.current, {
