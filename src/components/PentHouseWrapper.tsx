@@ -3,7 +3,7 @@
 import { Suspense, useRef, useEffect, useState } from "react";
 import { Penthouse } from "./PentHouse";
 import { Canvas, useThree } from "@react-three/fiber";
-import { Environment, PerspectiveCamera, useProgress } from "@react-three/drei";
+import { Environment, OrbitControls, PerspectiveCamera, useProgress } from "@react-three/drei";
 import * as THREE from "three";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -228,8 +228,8 @@ const PenthouseWrapper = () => {
                     <Environment preset="sunset" />
                     <Suspense fallback={null}>
                         <AnimatedPenthouse
-                            position={[0, 2, -5]}
-                            scale={[0.4, 0.4, 0.4]}
+                            position={[0, 3, 0]}
+                            scale={[0.3, 0.3, 0.3]}
                         />
                     </Suspense>
                 </Canvas>

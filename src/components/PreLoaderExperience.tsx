@@ -15,12 +15,14 @@ const PenthouseHologram = ({
     globalMouse,
     interactionState,
     landingIntroMusic,
-    syntheticMusic
+    syntheticMusic,
+    position
 }: {
     globalMouse: React.MutableRefObject<THREE.Vector2>,
     interactionState: React.MutableRefObject<{ isHolding: boolean; clickPos: THREE.Vector2; clickTime: number; }>,
     landingIntroMusic: HTMLAudioElement | null,
-    syntheticMusic: HTMLAudioElement | null
+    syntheticMusic: HTMLAudioElement | null,
+    position?: [number, number, number]
 }) => {
     const { scene } = useGLTF('/models/penthouse.glb');
     const clonedScene = useMemo(() => scene.clone(), [scene]);
@@ -149,7 +151,7 @@ const PenthouseHologram = ({
         });
     }, [clonedScene, material]);
 
-    return <primitive object={clonedScene} position={[0, -2, -6]} rotation={[0, 0, 0]} />;
+    return <primitive object={clonedScene} position={position || [0, 0, 0]} rotation={[0, 0, 0]} />;
 }
 
 const ShaderBackground = ({
@@ -164,13 +166,14 @@ const ShaderBackground = ({
     syntheticMusic: HTMLAudioElement | null
 }) => (
     <div className="absolute inset-0 w-full h-full">
-        <Canvas camera={{ position: [0, 0, 10], fov: 100 }} gl={{ preserveDrawingBuffer: true, antialias: true }}>
+        <Canvas camera={{ position: [0, 10, 15], fov: 100 }} gl={{ preserveDrawingBuffer: true, antialias: false }}>
             <Suspense fallback={null}>
                 <PenthouseHologram
                     globalMouse={globalMouse}
                     interactionState={interactionState}
                     landingIntroMusic={landingIntroMusic}
                     syntheticMusic={syntheticMusic}
+                    position={[0, 0, 4]}
                 />
             </Suspense>
             <ambientLight intensity={1} />

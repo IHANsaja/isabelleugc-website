@@ -1,13 +1,13 @@
 "use client";
 
 import * as THREE from 'three'
-import React, { useRef, useEffect } from 'react'
+import React, { useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
-import { GrassGround } from './shaders/GrassShaderMaterial';
-import { WaterPool } from './shaders/WaterShaderMaterial';
+// import { GrassGround } from './shaders/GrassShaderMaterial';
+// import { WaterPool } from './shaders/WaterShaderMaterial';
 
-const GRASS_POSITION: [number, number, number] = [-3.78, 0.014, 4.42];
+// const GRASS_POSITION: [number, number, number] = [-3.78, 0.014, 4.42];
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -20,1121 +20,590 @@ type GLTFResult = GLTF & {
 
 export function Penthouse(props: any) {
   const { nodes, materials } = useGLTF('/models/penthouse.glb') as unknown as GLTFResult
-
-
-
   return (
     <group {...props} dispose={null}>
-      <group position={[-2.442, 2.975, 7.418]}>
+      <group position={[6.902, 0, 0]}>
         <mesh
-          name="penthouse_door_left"
           castShadow
           receiveShadow
-          geometry={nodes.penthouse_door_left.geometry}
-          material={materials['04_-_Default']}
-          position={[-0.657, -1.178, 0.025]}
-        />
-        <mesh
-          name="penthouse_door_right"
-          castShadow
-          receiveShadow
-          geometry={nodes.penthouse_door_right.geometry}
-          material={materials['04_-_Default']}
-          position={[0.657, -1.178, 0.025]}
+          geometry={nodes.floor.geometry}
+          material={materials.carrelage_046_ovcolbfbfbfcolpic12contpic03_Room_Entity_Material}
         />
         <mesh
           castShadow
           receiveShadow
-          geometry={nodes['Plane001_04_-_Default_0'].geometry}
-          material={materials['04_-_Default']}
-          position={[0.657, -1.178, 0.025]}
+          geometry={nodes.floor_sep.geometry}
+          material={materials.gris_001_Room_Entity_Material}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.grass_ground.geometry}
+          material={materials.gazon_007_Room_Entity_Material}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_11.geometry}
+          material={materials.bois_080}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_12.geometry}
+          material={materials.buisson___buisson_branche_texture}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_13.geometry}
+          material={materials.buisson___buisson_branche_texture}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_14.geometry}
+          material={materials.buisson___buisson_texture}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_15.geometry}
+          material={materials.carrelage_046_ovcolacacaccolpic12contpic02_Wall_Entity_Material}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_17.geometry}
+          material={materials.carrelage_046_ovcolbfbfbfcolpic12contpic03_Wall_Entity_Material}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_18.geometry}
+          material={materials.cuir_007}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_19.geometry}
+          material={materials.cuisine_evier_001___mat_verni}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_2.geometry}
+          material={materials.armoire_002___mirror_miroir}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_20.geometry}
+          material={materials.cuisine_ilot_002___mat_verni}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_21.geometry}
+          material={materials.cuisine_meuble_bas_001___mat_microonde}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_22.geometry}
+          material={materials.cuisine_meuble_bas_001___mat_pied}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_23.geometry}
+          material={materials.cuisine_meuble_bas_001___mat_poignet}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_24.geometry}
+          material={materials.cuisine_meuble_bas_001___mat_porte}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_25.geometry}
+          material={materials.cuisine_meuble_bas_001___mat_verni}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_26.geometry}
+          material={
+            materials.cuisine_meuble_bas_003____cuisine_meuble_bas_003_cuisine_meuble_bas_003_cuisine_meuble_bas_003verni
+          }
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_27.geometry}
+          material={
+            materials.cuisine_meuble_haut_001____cuisine_meuble_haut_001_cuisine_meuble_haut_001_cuisine_meuble_haut_001verni
+          }
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_28.geometry}
+          material={
+            materials.cuisine_meuble_haut_002____cuisine_meuble_haut_002_cuisine_meuble_haut_002_cuisine_meuble_haut_002verni
+          }
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_29.geometry}
+          material={
+            materials.cuisine_plaque_cuisson_001____cuisine_plaque_cuisson_001_cuisine_plaque_cuisson_001_cuisine_plaque_cuisson_00108___default
+          }
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_30.geometry}
+          material={
+            materials.cuisine_plaque_cuisson_001____cuisine_plaque_cuisson_001_cuisine_plaque_cuisson_001_cuisine_plaque_cuisson_001metal
+          }
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_31.geometry}
+          material={
+            materials.cuisine_plaque_cuisson_001____cuisine_plaque_cuisson_001_cuisine_plaque_cuisson_001_cuisine_plaque_cuisson_001verni
+          }
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_33.geometry}
+          material={materials.cypres___mat_cypres_tronc}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_34.geometry}
+          material={materials.douche_italienne_002____douche_italienne__verre}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_35.geometry}
+          material={materials.douche_italienne_002____douche_italienne_fond}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_36.geometry}
+          material={materials.douche_italienne_002____douche_italienne_trou_douche}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_37.geometry}
+          material={materials.douche_italienne_002____douche_italienne_trous_douche}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_38.geometry}
+          material={materials.enduit_004_Room_Entity_Material}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_39.geometry}
+          material={materials.enduit_004_Wall_Entity_Material}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_4.geometry}
+          material={materials.baie_vitree_002___verre}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_40.geometry}
+          material={materials.fake_mat_0_0_0_255}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_41.geometry}
+          material={materials.fake_mat_107_107_107_255}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_42.geometry}
+          material={materials.fake_mat_142_142_142_255}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_43.geometry}
+          material={materials.fake_mat_149_149_149_255}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_44.geometry}
+          material={materials.fake_mat_165_165_165_255}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_45.geometry}
+          material={materials.fake_mat_204_202_198_255}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_46.geometry}
+          material={materials.fake_mat_229_229_229_255}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_47.geometry}
+          material={materials.fake_mat_248_249_253_255}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_48.geometry}
+          material={materials.fake_mat_254_254_254_255}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_49.geometry}
+          material={materials.fake_mat_255_255_255_32}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_5.geometry}
+          material={materials.baie_vitree_002___wood_dormant}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_50.geometry}
+          material={materials.fauteuil_017___mat_tissus057_2sg}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_51.geometry}
+          material={materials.fenetre_002____fenetre_002fenetre_002_d1}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_52.geometry}
+          material={materials.fenetre_002____fenetre_002fenetre_002_p1}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_53.geometry}
+          material={materials.fenetre_002____fenetre_verre}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_54.geometry}
+          material={materials.fenetre_029______phong1sg6}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_56.geometry}
+          material={materials.gris_001}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_58.geometry}
+          material={materials.gris_001_Wall_Entity_Material}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_59.geometry}
+          material={materials.horloge_002___bis_mat_horlogesg}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_6.geometry}
+          material={materials.beige_006_Wall_Entity_Material}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_60.geometry}
+          material={materials.hotte_003___mat_hote}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_61.geometry}
+          material={materials.lavabo_006___mat_blanc1sg}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_62.geometry}
+          material={materials.lavabo_006___mat_blanc2sg}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_63.geometry}
+          material={materials.lavabo_006___mat_blanc3sg}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_64.geometry}
+          material={materials.lavabo_006___mat_metalbasique001sg}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_65.geometry}
+          material={materials.lave_mains_001___lave_mains_001_blinn1sg}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_66.geometry}
+          material={materials.lave_mains_001___lave_mains_001_blinn4sg}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_67.geometry}
+          material={materials.marbre_004_ovcol737373colpic12contpic11}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_68.geometry}
+          material={materials['mirror.nocompress']}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_69.geometry}
+          material={materials.mur_vegetal_off___phong150}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_70.geometry}
+          material={materials.mur_vegetal_off___phong151}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_71.geometry}
+          material={materials.mur_vegetal_off___phong31}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_72.geometry}
+          material={materials.pack_002_sdb_deroule_papier___01___defaulte}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_73.geometry}
+          material={materials.pack_003_salon_television___material__83}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_75.geometry}
+          material={materials.pack_005_salle_de_sport_velo_appartement___nopaint_ecran}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_76.geometry}
+          material={materials.plante_interieur_off___bis_palmier_tronc2}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_78.geometry}
+          material={materials.plante_vase_off_001___phong37}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_79.geometry}
+          material={materials.porte_010___verre}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_8.geometry}
+          material={materials.blanc_001}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_80.geometry}
+          material={materials.porte_serviette_005___metal}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_81.geometry}
+          material={materials.prise_01____prise_prise_prisematerial__126}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_82.geometry}
+          material={materials.prise___material__49}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_83.geometry}
+          material={
+            materials.refrigerateur_006____refrigerateur_006_refrigerateur_006_refrigerateur_006glacon
+          }
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_84.geometry}
+          material={
+            materials.refrigerateur_006____refrigerateur_006_refrigerateur_006_refrigerateur_006porte
+          }
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_85.geometry}
+          material={materials.resine_tresse_blanche_ovcol737373colpic12contpic11}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_86.geometry}
+          material={materials.table_basse_016___mat_vitresg}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_87.geometry}
+          material={materials.tex_terreau}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_89.geometry}
+          material={materials.tissus_030_ovcol868686colpic12contpic00}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_9.geometry}
+          material={materials.blanc_001_Room_Entity_Material}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_90.geometry}
+          material={materials.tissus_044_ovcolacacaccolpic12contpic02}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_91.geometry}
+          material={materials.tissus_065_ovcol868686colpic12contpic00}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_92.geometry}
+          material={materials.tissus_071_ovcolacacaccolpic12contpic02}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_93.geometry}
+          material={materials.vitrine_004___mat_vitresg}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_94.geometry}
+          material={materials.wc_005____base}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_95.geometry}
+          material={materials.wc_005____couvercle}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.outside_floor.geometry}
+          material={materials.bitume_001_ovcol737373colpic12contpic11_Room_Entity_Material}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.pine_trees.geometry}
+          material={materials.cypres___mat_cypres_feuille}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.pool_water.geometry}
+          material={materials.texture_eau_piscine_ovcol5ca1d7colpic11contpic01}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.tree_pots.geometry}
+          material={materials.plante_interieur_off___phong80}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.tree_pots_thin.geometry}
+          material={materials.pack_004_salon_001_plante___nopaint_feuilles}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.walls.geometry}
+          material={materials.blanc_001_Wall_Entity_Material}
         />
       </group>
       <mesh
         castShadow
         receiveShadow
-        geometry={nodes['Box001_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-6.585, 3.926, 8.817]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box002_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-6.372, 3.926, 8.817]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box003_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-6.168, 3.926, 8.817]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box004_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-5.964, 3.926, 8.817]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box005_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-5.743, 3.926, 8.817]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box006_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-5.523, 3.926, 8.817]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box007_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-5.31, 3.926, 8.817]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box008_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-5.084, 3.926, 8.817]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box009_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-4.855, 3.926, 8.817]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box010_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 9.333]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box011_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 9.209]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box012_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 9.085]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box013_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 8.961]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box014_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 8.837]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box015_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 8.713]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box016_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 8.589]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box017_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 8.464]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box018_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 8.34]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box019_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 8.216]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box020_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 8.092]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box021_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 7.969]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box022_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 7.846]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box023_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 7.723]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box024_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 7.607]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box025_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[0.731, 3.926, 7.49]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box026_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[5.471, 3.926, -5.822]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box027_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[5.721, 3.926, -5.822]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box028_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[5.971, 3.926, -5.822]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box029_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[6.22, 3.926, -5.822]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box030_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[6.47, 3.926, -5.822]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box031_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[6.72, 3.926, -5.822]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box032_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[6.97, 3.926, -5.822]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box033_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[7.248, 3.926, -5.822]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box034_15_-_Glossy_Plastic_0'].geometry}
-        material={materials['15_-_Glossy_Plastic']}
-        position={[1.377, -0.228, -0.175]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Box035_Metal_0.geometry}
-        material={materials.Metal}
-        position={[-6.002, 0, 7.386]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Box036_Metal_0.geometry}
-        material={materials.Metal}
-        position={[1.643, 0, 7.386]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box038_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[-6.9, 4.733, 7.329]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box039_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[-6.9, 4.733, -4.828]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box040_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[5.022, 4.733, -4.828]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box041_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[5.022, 4.733, -2.584]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box042_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[11.161, 4.733, -2.584]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box043_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[11.141, 4.733, 3.083]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box044_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[0.023, 4.733, 3.083]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box045_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[0.023, 4.733, 7.333]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box046_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[-9.862, 1.575, 2.244]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box047_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[-9.862, 1.575, -3.358]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box048_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[-6.67, 1.575, -6.699]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box049_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[-6.67, 1.575, -7.544]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box050_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[4.999, 1.575, -7.544]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box051_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[4.999, 1.575, -5.014]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box052_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[9.981, 1.575, 5.288]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box053_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[0.167, 1.575, 5.288]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box054_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[-7.117, 1.575, 2.244]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box056_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[9.981, 1.575, 3.348]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box057_18_-_Rubber_0'].geometry}
-        material={materials['18_-_Rubber']}
-        position={[-3.787, 7.158, -2.809]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box059_20_-_Polished_Aluminum_0'].geometry}
-        material={materials['20_-_Polished_Aluminum']}
-        position={[3.956, 0.294, 7.964]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Box060_23_-_Default_0'].geometry}
-        material={materials['23_-_Default']}
-        position={[1.013, -0.031, 1.509]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line001_01_-_Default_0'].geometry}
-        material={materials['01_-_Default']}
-        position={[-0.764, 0, 0.377]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Line002_Wall_Paint_0.geometry}
-        material={materials.Wall_Paint}
-        position={[-0.764, 0.6, 0.377]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line004_05_-_Default_0'].geometry}
-        material={materials['05_-_Default']}
-        position={[-0.764, 0.6, 0.377]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Line005_Solid_Glass_0.geometry}
-        material={materials.Solid_Glass}
-        position={[2.348, 3.9, 0.743]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line007_15_-_Glossy_Plastic_0'].geometry}
-        material={materials['15_-_Glossy_Plastic']}
-        position={[2.348, 6.9, 0.755]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Line008_Wall_Paint_0.geometry}
-        material={materials.Wall_Paint}
-        position={[2.348, 3.65, 0.755]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line009_03_-_Default_0'].geometry}
-        material={materials['03_-_Default']}
-        position={[-3.353, 4.141, 8.128]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line010_03_-_Default_0'].geometry}
-        material={materials['03_-_Default']}
-        position={[-2.32, 4.141, -5.608]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line011_12_-_Car_Paint_0'].geometry}
-        material={materials['12_-_Car_Paint']}
-        position={[-0.764, 0.05, 0.377]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line012_06_-_Default_0'].geometry}
-        material={materials['06_-_Default']}
-        position={[2.348, 3.6, 0.755]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line013_17_-_Old_Copper_#1_0'].geometry}
-        material={materials['17_-_Old_Copper_1']}
-        position={[-0.842, 4.038, -6.685]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line014_17_-_Old_Copper_#1_0'].geometry}
-        material={materials['17_-_Old_Copper_1']}
-        position={[-0.842, 4.154, -6.685]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line015_17_-_Old_Copper_#1_0'].geometry}
-        material={materials['17_-_Old_Copper_1']}
-        position={[-0.842, 4.27, -6.685]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line016_17_-_Old_Copper_#1_0'].geometry}
-        material={materials['17_-_Old_Copper_1']}
-        position={[-0.842, 4.385, -6.685]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line017_17_-_Old_Copper_#1_0'].geometry}
-        material={materials['17_-_Old_Copper_1']}
-        position={[-8.436, 4.043, -0.548]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line018_17_-_Old_Copper_#1_0'].geometry}
-        material={materials['17_-_Old_Copper_1']}
-        position={[-8.436, 4.16, -0.548]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line019_17_-_Old_Copper_#1_0'].geometry}
-        material={materials['17_-_Old_Copper_1']}
-        position={[-8.436, 4.277, -0.548]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line020_17_-_Old_Copper_#1_0'].geometry}
-        material={materials['17_-_Old_Copper_1']}
-        position={[-8.436, 4.393, -0.548]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line021_17_-_Old_Copper_#1_0'].geometry}
-        material={materials['17_-_Old_Copper_1']}
-        position={[6.688, 4.037, 4.608]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line022_17_-_Old_Copper_#1_0'].geometry}
-        material={materials['17_-_Old_Copper_1']}
-        position={[6.688, 4.152, 4.608]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line023_17_-_Old_Copper_#1_0'].geometry}
-        material={materials['17_-_Old_Copper_1']}
-        position={[6.688, 4.266, 4.608]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line024_17_-_Old_Copper_#1_0'].geometry}
-        material={materials['17_-_Old_Copper_1']}
-        position={[6.688, 4.38, 4.608]}
-      />
-      <GrassGround
-        geometry={nodes.grass_ground.geometry}
-        position={GRASS_POSITION}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Line026_21_-_Default_0'].geometry}
-        material={materials['21_-_Default']}
-        position={[6.785, 0.014, -2.357]}
-      />
-      <WaterPool
-        geometry={nodes.pool_water.geometry}
-        position={[3.956, 0.117, 7.964]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane002_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-5.801, 5.221, 7.29]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane003_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[1.426, 5.221, 3.02]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane004_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[3.527, 5.221, 3.02]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane005_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[5.615, 5.221, 3.02]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane006_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[7.704, 5.221, 3.02]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane007_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[7.711, 1.886, 5.279]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane008_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[5.619, 1.886, 5.279]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane009_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[3.528, 1.886, 5.279]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane010_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[1.442, 1.886, 5.279]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane011_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-6.351, 1.886, 2.298]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane012_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-8.56, 1.886, 2.298]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane013_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-8.56, 1.886, -2.516]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane014_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-6.361, 1.886, -2.516]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane015_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-3.678, 1.886, -7.531]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane016_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-1.37, 1.886, -7.531]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane017_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[1.205, 1.886, -7.531]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane018_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[3.783, 1.886, -7.531]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane019_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[6.406, 1.886, -2.542]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane020_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[8.504, 1.886, -2.542]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane021_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-4.874, 1.886, 3.779]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane022_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-4.874, 1.886, 6.03]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane023_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-6.852, 5.222, 1.036]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane024_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-6.852, 5.222, -1.452]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane025_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[3.785, 5.221, -4.784]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane026_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[1.205, 5.221, -4.784]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane027_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-1.369, 5.221, -4.784]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane028_04_-_Default_0'].geometry}
-        material={materials['04_-_Default']}
-        position={[-3.949, 5.221, -4.784]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Plane029_11_-_Default_0'].geometry}
-        material={materials['11_-_Default']}
-        position={[-2.168, 0.023, 10.476]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Rectangle001_03_-_Default_0'].geometry}
-        material={materials['03_-_Default']}
-        position={[-7.686, 5.496, -1.055]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Rectangle002_03_-_Default_0'].geometry}
-        material={materials['03_-_Default']}
-        position={[-2.442, 3.044, 7.444]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Rectangle003_14_-_Polished_Aluminum_0'].geometry}
-        material={materials['14_-_Polished_Aluminum']}
-        position={[0.628, 4.334, 1.139]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape001_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-7.844, 5.496, -1.055]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape002_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-8.059, 5.496, -1.055]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape003_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-8.283, 5.496, -1.055]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape004_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-8.504, 5.496, -1.055]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape005_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-8.723, 5.496, -1.055]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape006_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-8.934, 5.496, -1.055]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape007_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[-9.132, 5.496, -1.055]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape008_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[10.866, 5.496, 3.04]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape009_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[11.127, 5.496, 3.04]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape010_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[11.387, 5.496, 3.04]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape011_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[11.647, 5.496, 3.04]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape012_02_-_Default_0'].geometry}
-        material={materials['02_-_Default']}
-        position={[11.908, 5.496, 3.04]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape013_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-2.442, 2.975, 7.425]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape014_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-5.801, 5.221, 7.29]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape015_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[1.426, 5.221, 3.02]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape016_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[3.527, 5.221, 3.02]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape017_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[5.615, 5.221, 3.02]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape018_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[7.704, 5.221, 3.02]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape019_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[7.711, 1.886, 5.279]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape020_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[5.619, 1.886, 5.279]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape021_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[3.528, 1.886, 5.279]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape022_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[1.442, 1.886, 5.279]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape023_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-6.351, 1.886, 2.298]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape024_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-8.56, 1.886, 2.298]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape025_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-8.56, 1.886, -2.516]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape026_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-6.361, 1.886, -2.516]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape027_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-3.678, 1.886, -7.531]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape028_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-1.37, 1.886, -7.531]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape029_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[1.205, 1.886, -7.531]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape030_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[3.783, 1.886, -7.531]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape031_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[6.406, 1.886, -2.542]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape032_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[8.504, 1.886, -2.542]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape033_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-4.874, 1.886, 3.779]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape034_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-4.874, 1.886, 6.03]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape035_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-6.852, 5.222, 1.036]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape036_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-6.852, 5.222, -1.452]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape037_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[3.785, 5.221, -4.783]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape038_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[1.205, 5.221, -4.783]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape039_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-1.369, 5.221, -4.783]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.Shape040_Ceramic_0.geometry}
-        material={materials.Ceramic}
-        position={[-3.949, 5.221, -4.783]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape041_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[2.348, 7.078, 0.755]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape042_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[2.348, 7.23, 0.755]}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['Shape043_16_-_Matte_Plastic_0'].geometry}
-        material={materials['16_-_Matte_Plastic']}
-        position={[2.348, 7.382, 0.755]}
+        geometry={nodes.building_bottom.geometry}
+        material={nodes.building_bottom.material}
+        position={[0.553, 0.755, 0]}
       />
     </group>
   )
