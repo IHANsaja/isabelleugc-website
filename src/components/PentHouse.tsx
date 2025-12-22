@@ -20,6 +20,8 @@ type GLTFResult = GLTF & {
 
 export function Penthouse(props: any) {
   const { nodes, materials } = useGLTF('/models/penthouse.glb') as unknown as GLTFResult
+
+
   return (
     <group {...props} dispose={null}>
       <group position={[6.902, 0, 0]}>
@@ -602,9 +604,27 @@ export function Penthouse(props: any) {
         castShadow
         receiveShadow
         geometry={nodes.building_bottom.geometry}
-        material={nodes.building_bottom.material}
         position={[0.553, 0.755, 0]}
-      />
+      >
+        <meshStandardMaterial
+          color="#333333"
+          roughness={0.7}
+          onBeforeCompile={(shader) => {
+            shader.vertexShader = `varying vec3 vWorldPosition;\n${shader.vertexShader}`.replace(
+              '#include <worldpos_vertex>',
+              `#include <worldpos_vertex>\n vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;`
+            );
+            shader.fragmentShader = `varying vec3 vWorldPosition;\n${shader.fragmentShader}`.replace(
+              '#include <dithering_fragment>',
+              `#include <dithering_fragment>\n 
+               float floorH = 3.5;\n
+               float lineT = 0.05;\n
+               float pattern = smoothstep(1.0 - lineT, 1.0, fract(vWorldPosition.y / floorH));\n
+               gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.0), pattern);\n`
+            );
+          }}
+        />
+      </mesh>
     </group>
   )
 }

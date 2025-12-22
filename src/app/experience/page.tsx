@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, PointerLockControls, KeyboardControls, useKeyboardControls, PerspectiveCamera } from "@react-three/drei";
-import { Suspense, useRef, useEffect, useState } from "react";
-import { Penthouse } from "@/components/PentHouse";
+import { Canvas } from "@react-three/fiber";
+import { KeyboardControls } from "@react-three/drei";
+import { Suspense, useEffect, useState } from "react";
 import ExperienceOverlay from "@/components/ExperienceOverlay";
 import NavigationHUD from "@/components/NavigationHUD";
-import * as THREE from "three";
-import { stopAllAudio, stopWindGrassSound } from "@/utils/audioManager";
+import { stopAllAudio } from "@/utils/audioManager";
+
+import { ExperienceScene } from "@/components/ExperienceScene";
 
 // Define controls
 enum Controls {
@@ -19,90 +19,6 @@ enum Controls {
     jump = 'jump',
     sprint = 'sprint',
 }
-
-const Player = () => {
-    const [, get] = useKeyboardControls<Controls>()
-    const { camera } = useThree();
-    const velocity = useRef(new THREE.Vector3())
-    const direction = useRef(new THREE.Vector3())
-    const WALK_SPEED = 10;
-    const SPRINT_SPEED = 15;
-    const JUMP_FORCE = 10;
-    const GRAVITY = 25;
-
-    // Y-velocity for jumping
-    const velocityY = useRef(0);
-    const isJumping = useRef(false);
-
-    // Track if player has moved to stop wind-n-grass sound
-    const hasMovedRef = useRef(false);
-
-    useFrame((state, delta) => {
-        const { forward, backward, left, right, sprint, jump } = get()
-
-        const speed = sprint ? SPRINT_SPEED : WALK_SPEED;
-
-        direction.current.x = Number(Boolean(right)) - Number(Boolean(left))
-        direction.current.z = Number(Boolean(forward)) - Number(Boolean(backward))
-        direction.current.normalize()
-
-        // Movement (X/Z)
-        if (forward || backward || left || right) {
-            // Stop wind-n-grass sound on first movement
-            if (!hasMovedRef.current) {
-                stopWindGrassSound();
-                hasMovedRef.current = true;
-            }
-
-            const moveX = direction.current.x * speed * delta;
-            const moveZ = direction.current.z * speed * delta;
-            camera.translateX(moveX);
-            camera.translateZ(-moveZ);
-        }
-
-        // Jumping (Y)
-        if (jump && !isJumping.current) {
-            velocityY.current = JUMP_FORCE;
-            isJumping.current = true;
-        }
-
-        // Apply Gravity
-        velocityY.current -= GRAVITY * delta;
-        camera.position.y += velocityY.current * delta;
-
-        // Floor Collision
-        if (camera.position.y < 4) {
-            camera.position.y = 4;
-            velocityY.current = 0;
-            isJumping.current = false;
-        }
-    })
-    return null;
-}
-
-const ExperienceScene = ({ onLock, onUnlock }: { onLock: () => void, onUnlock: () => void }) => {
-    return (
-        <>
-            <ambientLight intensity={0.6} />
-            <directionalLight position={[10, 10, 5]} intensity={1} />
-            <Environment preset="sunset" />
-
-            {/* Camera starts inside the penthouse */}
-            <PerspectiveCamera makeDefault position={[0, 2, 0]} />
-
-            <PointerLockControls
-                selector="#experience-canvas"
-                onLock={onLock}
-                onUnlock={onUnlock}
-            />
-            <Player />
-
-            <group scale={[3, 3, 3]} position={[0, -2, 0]}>
-                <Penthouse />
-            </group>
-        </>
-    );
-};
 
 export default function ExperiencePage() {
     const map = [

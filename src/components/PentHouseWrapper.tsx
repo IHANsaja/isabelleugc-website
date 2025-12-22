@@ -225,11 +225,11 @@ const PenthouseWrapper = () => {
                     <ambientLight intensity={0.5} />
                     <directionalLight position={[10, 1, 10]} intensity={1} />
                     <PerspectiveCamera makeDefault position={[0, 5, 12]} />
-                    <Environment preset="sunset" />
+                    <Environment files="/hdr/shanghai_night.hdr" background />
                     <Suspense fallback={null}>
                         <AnimatedPenthouse
-                            position={[0, 5, 0]}
-                            scale={[0.3, 0.3, 0.3]}
+                            position={[0, 0, 0]}
+                            scale={[1, 1, 1]}
                         />
                     </Suspense>
                 </Canvas>
