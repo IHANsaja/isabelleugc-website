@@ -2,9 +2,12 @@
 
 import * as THREE from 'three'
 import React, { useRef } from 'react'
-import { useGLTF } from '@react-three/drei'
+import { useGLTF, MeshTransmissionMaterial } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
-import { ThreeElements } from '@react-three/fiber'
+import { ThreeElements, useFrame } from '@react-three/fiber'
+import './CityShaderMaterial' // Register the custom shader material
+import './CityGroundShaderMaterial' // Register the custom ground shader material
+import './CloudShaderMaterial' // Register the custom cloud shader material
 
 type GLTFResult = GLTF & {
     nodes: {
@@ -17,6 +20,26 @@ type GLTFResult = GLTF & {
 
 export function SceneModel(props: ThreeElements['group']) {
     const { nodes, materials } = useGLTF('/models/scene.glb') as unknown as GLTFResult
+
+    // Animation refs for shaders
+    const cloudMat = useRef<any>(null);
+    const groundMat = useRef<any>(null);
+
+    React.useEffect(() => {
+        // useFrame is not available inside the component body directly usually if not careful? 
+        // No, it's fine.
+    }, [])
+
+    useFrame((state, delta) => {
+        if (cloudMat.current) {
+            cloudMat.current.uTime = state.clock.elapsedTime;
+        }
+        if (groundMat.current) {
+            // Updated ground shader also has uTime
+            groundMat.current.uTime = state.clock.elapsedTime;
+        }
+    });
+
     return (
         <group {...props} dispose={null}>
             <group position={[0, -23.641, 0]}>
@@ -24,14 +47,16 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.City_City_0.geometry}
-                    material={materials.City}
-                />
+                >
+                    <cityShaderMaterial />
+                </mesh>
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.City_City_0001.geometry}
-                    material={materials.City}
-                />
+                >
+                    <cityShaderMaterial />
+                </mesh>
             </group>
             <group position={[8.047, 0.288, -2.653]}>
                 <mesh
@@ -620,9 +645,49 @@ export function SceneModel(props: ThreeElements['group']) {
                 castShadow
                 receiveShadow
                 geometry={nodes.city_ground.geometry}
-                material={nodes.city_ground.material}
                 position={[0, -23.641, 0]}
-            />
+            >
+                <cityGroundShaderMaterial
+                    ref={groundMat}
+                    transparent
+                    uRadiusStart={200}
+                    uRadiusEnd={500}
+                    uColorWater={new THREE.Color("#4fa1d8")}
+                    uColorGrass={new THREE.Color("#5e9e58")}
+                    uColorPavement={new THREE.Color("#505050")} // Dark Asphalt
+                    uColorEdge={new THREE.Color("#e8e8e8")}
+                />
+            </mesh>
+
+            {/* Cloud Layer */}
+            <mesh position={[0, -18, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <planeGeometry args={[800, 800]} />
+                <cloudShaderMaterial
+                    ref={cloudMat}
+                    transparent
+                    uColor={new THREE.Color("#ffffff")}
+                    uCloudDensity={0.6}
+                    uCloudSpeed={0.15}
+                />
+            </mesh>
+
+            {/* Blur Layer */}
+            {/* COMMENT: This layer blurs the city background. If the scene is too white or 
+                you can't see the city, reduce 'roughness' (e.g. to 0.2) or remove this mesh. */}
+            <mesh position={[0, -20, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <planeGeometry args={[800, 800]} />
+                <MeshTransmissionMaterial
+                    transmission={1}
+                    roughness={0.55} // Reduce this to 0.1-0.2 for better visibility
+                    thickness={5}
+                    ior={1.0}
+                    chromaticAberration={0.01}
+                    anisotropy={0}
+                    distortion={0}
+                    distortionScale={0}
+                    temporalDistortion={0}
+                />
+            </mesh>
         </group>
     )
 }
