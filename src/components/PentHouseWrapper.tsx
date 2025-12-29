@@ -25,13 +25,28 @@ interface DebugInfo {
     scale: { x: number; y: number; z: number };
 }
 
-// Animated wrapper component for the Penthouse
+// Camera Path Configuration
+const CAMERA_PATH_CONFIG = {
+    initial: { x: 0, y: 7, z: 12 },
+    initialRot: { x: 0, y: 0, z: 0 },
+    phase1: { x: 0, y: 5.5, z: 3 },
+    phase1Rot: { x: 0, y: 0, z: 0 },
+    phase2: { x: 0, y: 5.5, z: 1.3 },
+    phase2Rot: { x: 0, y: -1.57, z: 0 }, // Rotate 90 deg right
+    phase3: { x: 2.5, y: 5.5, z: 1.3 },  // Move to X=2.5
+    phase3Rot: { x: 0, y: -3.14, z: 0 }, // Turn right (180 deg / -PI)
+};
+
 // Animated wrapper component for the Penthouse
 const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => void }) => {
     const groupRef = useRef<THREE.Group>(null);
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const { camera } = useThree(); // Access the camera
+
+    // --- CAMERA CONTROLS (Static Config) ---
+    // Using CAMERA_PATH_CONFIG defined above instead of Leva controls
+
 
     useGSAP(() => {
         const tl = gsap.timeline({
@@ -41,24 +56,24 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
                 end: "bottom bottom",
                 scrub: 1.5,
                 onUpdate: (self) => {
+                    const progress = self.progress;
+                    let phase = "Phase 1: Moving Left";
+                    // Timeline Total: 9s (3 + 3 + 3)
+                    // P1: 0-3s (0 - 0.33)
+                    // P2: 3-6s (0.33 - 0.66)
+                    // P3: 6-9s (0.66 - 1.0)
+
+                    if (progress > 0.33 && progress <= 0.66) {
+                        phase = "Phase 2: Center Approach";
+                    } else if (progress > 0.66) {
+                        phase = "Phase 3: Final Turn & Stop";
+                    }
+
+                    // Update Leva - REMOVED
+                    // set({ currentPhase: phase });
+
                     // Update debug info - tracking CAMERA now
                     if (props.onDebugUpdate && groupRef.current) {
-                        const progress = self.progress;
-                        let phase = "Phase 1: Moving Left";
-                        // Timeline Total: 17s (3 + 3 + 6 + 5)
-                        // P1: 0-3s (0 - 0.176)
-                        // P2: 3-6s (0.176 - 0.353)
-                        // P3: 6-12s (0.353 - 0.706)
-                        // P4: 12-17s (0.706 - 1.0)
-
-                        if (progress > 0.176 && progress <= 0.353) {
-                            phase = "Phase 2: Center Approach";
-                        } else if (progress > 0.353 && progress <= 0.706) {
-                            phase = "Phase 3: Moving Right (Long)";
-                        } else if (progress > 0.706) {
-                            phase = "Phase 4: Final Entry";
-                        }
-
                         props.onDebugUpdate({
                             progress: Math.round(progress * 100),
                             phase,
@@ -87,93 +102,64 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
         });
 
         // Ensure camera starts at initial position
-        camera.position.set(0, 7, 12);
-        camera.rotation.set(0, 0, 0); // Reset rotation to be sure
+        camera.position.set(CAMERA_PATH_CONFIG.initial.x, CAMERA_PATH_CONFIG.initial.y, CAMERA_PATH_CONFIG.initial.z);
+        camera.rotation.set(CAMERA_PATH_CONFIG.initialRot.x, CAMERA_PATH_CONFIG.initialRot.y, CAMERA_PATH_CONFIG.initialRot.z);
 
-        // --- CAMERA ANIMATION PATH (4 Phases -> Total 17s) ---
+        // --- CAMERA ANIMATION PATH (3 Phases -> Total 9s) ---
 
         // Phase 1: Move Camera Left and Forward (0s - 3s)
         tl.to(camera.position, {
-            x: -1,   // Camera moves left
-            y: 3,    // Height adjustment
-            z: 3,    // Move closer 
+            x: CAMERA_PATH_CONFIG.phase1.x,
+            y: CAMERA_PATH_CONFIG.phase1.y,
+            z: CAMERA_PATH_CONFIG.phase1.z,
             duration: 3,
             ease: "sine.inOut",
         }, 0);
 
-        // Rotate camera to look at center
+        // Rotate camera
         tl.to(camera.rotation, {
-            x: 0,
-            y: 0,
+            x: CAMERA_PATH_CONFIG.phase1Rot.x,
+            y: CAMERA_PATH_CONFIG.phase1Rot.y,
+            z: CAMERA_PATH_CONFIG.phase1Rot.z,
             duration: 3,
             ease: "sine.inOut",
         }, 0);
 
 
-        // Phase 2: Move Camera to Center/Left and Closer (3s - 6s)
+        // Phase 2: Move Camera to Center/Left and Closer (Starts at 3s for pos, 2.5s for rot)
         tl.to(camera.position, {
-            x: -1,    // Stay left/center?
-            y: 3,     // Maintain height
-            z: -2.5,  // Much closer
+            x: CAMERA_PATH_CONFIG.phase2.x,
+            y: CAMERA_PATH_CONFIG.phase2.y,
+            z: CAMERA_PATH_CONFIG.phase2.z,
             duration: 3,
             ease: "sine.inOut",
         }, 3);
 
         tl.to(camera.rotation, {
-            y: 0,    // Look straight
-            duration: 3,
+            x: CAMERA_PATH_CONFIG.phase2Rot.x,
+            y: CAMERA_PATH_CONFIG.phase2Rot.y,
+            z: CAMERA_PATH_CONFIG.phase2Rot.z,
+            duration: 3.5, // slightly longer to smooth overlap
             ease: "sine.inOut",
-        }, 3);
+        }, 2.5); // Start 0.5s before Phase 1 ends
 
 
-        // Phase 3: Move Camera Right (6s - 12s) [Extended 6s duration]
-        // Split into 2 steps for smoother rotation curve
-
-        // Step 3a: Mid-way turn (6s - 9s)
+        // Phase 3: Final Move to X=2.5 and Turn Right (Starts after Phase 2)
         tl.to(camera.position, {
-            x: 0,    // Moving towards right
-            y: 3,
-            z: -3.2,   // Approaching
+            x: CAMERA_PATH_CONFIG.phase3.x,
+            y: CAMERA_PATH_CONFIG.phase3.y,
+            z: CAMERA_PATH_CONFIG.phase3.z,
             duration: 3,
-            ease: "none", // Linear for middle segment
+            ease: "power2.out",
         }, 6);
 
         tl.to(camera.rotation, {
-            y: -0.7,  // Halfway rotation
+            x: CAMERA_PATH_CONFIG.phase3Rot.x,
+            y: CAMERA_PATH_CONFIG.phase3Rot.y,
+            z: CAMERA_PATH_CONFIG.phase3Rot.z,
             duration: 3,
-            ease: "none",
+            ease: "power2.out",
         }, 6);
-
-        // Step 3b: Complete turn (9s - 12s)
-        tl.to(camera.position, {
-            x: 0,    // Final right position
-            y: 3,
-            z: -4,
-            duration: 3,
-            ease: "none",
-        }, 9);
-
-        tl.to(camera.rotation, {
-            y: -1.4,  // Full rotation
-            duration: 3,
-            ease: "none",
-        }, 9);
-
-
-        // Phase 4: Final Entry - Straighten and Enter (12s - 17s) [5s duration]
-        tl.to(camera.position, {
-            x: 0,     // Center align
-            y: 3,     // Maintain height (or dip 2?)
-            z: -5,    // Pass through (-5 as requested)
-            duration: 5, // +2 seconds added
-            ease: "power2.inOut", // Smooth entry
-        }, 12);
-
-        tl.to(camera.rotation, {
-            y: 0,     // Face straight (0 as requested)
-            duration: 5,
-            ease: "power2.inOut",
-        }, 12);
 
 
         // Door Animation (Aligned to timeline)
@@ -196,7 +182,7 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
             }
         }
 
-    }, [isLoading, router, camera]);
+    }, [isLoading, router, camera]); // Removed controls from dependency
 
     return (
         <>
@@ -218,8 +204,80 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
 };
 
 const PenthouseWrapper = () => {
+    const [showDebug, setShowDebug] = useState(false);
+    const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
+
+    const handleDebugUpdate = (info: DebugInfo) => {
+        setDebugInfo(info);
+    };
+
     return (
         <div style={{ height: "400vh", position: "relative" }}> {/* Add scrollable height */}
+            {/* Simple Debug Panel */}
+            <div style={{
+                position: "fixed",
+                top: "20px",
+                right: "20px",
+                zIndex: 1000,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: "10px"
+            }}>
+                <button
+                    onClick={() => setShowDebug(!showDebug)}
+                    style={{
+                        padding: "8px 16px",
+                        background: "rgba(0,0,0,0.7)",
+                        color: "white",
+                        border: "1px solid rgba(255,255,255,0.2)",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                        backdropFilter: "blur(5px)"
+                    }}
+                >
+                    {showDebug ? "Hide Debug" : "Show Debug"}
+                </button>
+
+                {showDebug && debugInfo && (
+                    <div style={{
+                        background: "rgba(0,0,0,0.8)",
+                        padding: "15px",
+                        borderRadius: "12px",
+                        color: "#eee",
+                        width: "250px",
+                        fontFamily: "monospace",
+                        fontSize: "12px",
+                        backdropFilter: "blur(10px)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+                    }}>
+                        <div style={{ marginBottom: "10px", color: "#88c0d0", fontWeight: "bold" }}>
+                            {debugInfo.phase}
+                        </div>
+
+                        <div style={{ marginBottom: "5px" }}>Position:</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "5px", marginBottom: "10px", color: "#a3be8c" }}>
+                            <span>X: {debugInfo.position.x}</span>
+                            <span>Y: {debugInfo.position.y}</span>
+                            <span>Z: {debugInfo.position.z}</span>
+                        </div>
+
+                        <div style={{ marginBottom: "5px" }}>Rotation:</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "5px", color: "#ebcb8b" }}>
+                            <span>X: {debugInfo.rotation.x}</span>
+                            <span>Y: {debugInfo.rotation.y}</span>
+                            <span>Z: {debugInfo.rotation.z}</span>
+                        </div>
+
+                        <div style={{ marginTop: "10px", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "5px", color: "#666" }}>
+                            Progress: {debugInfo.progress}%
+                        </div>
+                    </div>
+                )}
+            </div>
+
             <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%" }}>
                 <Canvas style={{ width: "100vw", height: "100vh" }}>
                     <ambientLight intensity={0.5} />
@@ -230,6 +288,7 @@ const PenthouseWrapper = () => {
                         <AnimatedPenthouse
                             position={[0, 5, 0]}
                             scale={[0.3, 0.3, 0.3]}
+                            onDebugUpdate={handleDebugUpdate}
                         />
                     </Suspense>
                 </Canvas>
