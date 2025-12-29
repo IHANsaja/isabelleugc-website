@@ -3,12 +3,14 @@
 
 let experienceBackgroundMusic: HTMLAudioElement | null = null;
 let windGrassSound: HTMLAudioElement | null = null;
+let landingIntroMusic: HTMLAudioElement | null = null;
 let isGlobalMuted: boolean = true;
 
 export const setGlobalMute = (muted: boolean) => {
     isGlobalMuted = muted;
     if (experienceBackgroundMusic) experienceBackgroundMusic.muted = muted;
     if (windGrassSound) windGrassSound.muted = muted;
+    if (landingIntroMusic) landingIntroMusic.muted = muted;
 };
 
 export const getGlobalMute = () => isGlobalMuted;
@@ -59,6 +61,35 @@ export const resumeAudioContext = () => {
     }
 };
 
+export const startLandingIntroMusic = () => {
+    if (typeof window !== "undefined" && !landingIntroMusic) {
+        landingIntroMusic = new Audio('/sounds/SFX/landing_intro.mp3');
+        landingIntroMusic.loop = true;
+        landingIntroMusic.volume = 0.3;
+        landingIntroMusic.muted = isGlobalMuted;
+
+        connectSourceToAnalyser(landingIntroMusic);
+
+        landingIntroMusic.play().catch(() => { });
+    } else if (landingIntroMusic && landingIntroMusic.paused) {
+        landingIntroMusic.play().catch(() => { });
+    }
+};
+
+export const pauseLandingIntroMusic = () => {
+    if (landingIntroMusic) {
+        landingIntroMusic.pause();
+    }
+};
+
+export const stopLandingIntroMusic = () => {
+    if (landingIntroMusic) {
+        landingIntroMusic.pause();
+        landingIntroMusic.currentTime = 0;
+        landingIntroMusic = null;
+    }
+};
+
 export const startExperienceBackgroundMusic = () => {
     if (typeof window !== "undefined" && !experienceBackgroundMusic) {
         experienceBackgroundMusic = new Audio('/sounds/SFX/experience-background.mp3');
@@ -86,9 +117,9 @@ export const startWindGrassSound = () => {
         windGrassSound.loop = true;
         windGrassSound.volume = 0.3;
         windGrassSound.muted = isGlobalMuted;
-        
+
         connectSourceToAnalyser(windGrassSound);
-        
+
         windGrassSound.play().catch(() => { });
     }
 };
@@ -104,6 +135,7 @@ export const stopWindGrassSound = () => {
 export const stopAllAudio = () => {
     stopExperienceBackgroundMusic();
     stopWindGrassSound();
+    stopLandingIntroMusic();
 };
 
 export const playClickSound = () => {
@@ -111,7 +143,7 @@ export const playClickSound = () => {
         const clickSound = new Audio('/sounds/SFX/click.mp3');
         clickSound.volume = 0.4;
         clickSound.muted = isGlobalMuted;
-        
+
         connectSourceToAnalyser(clickSound);
 
         clickSound.play().catch(() => { });

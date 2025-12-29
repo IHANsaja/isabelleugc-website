@@ -8,7 +8,14 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { LoaderShaderMaterial } from "./shaders/LoaderShaderMaterial";
 import * as THREE from "three";
 import { Suspense, useMemo } from "react";
-import { startExperienceBackgroundMusic, startWindGrassSound, connectSourceToAnalyser } from "@/utils/audioManager";
+import {
+    startExperienceBackgroundMusic,
+    startWindGrassSound,
+    connectSourceToAnalyser,
+    startLandingIntroMusic,
+    pauseLandingIntroMusic,
+    stopLandingIntroMusic
+} from "@/utils/audioManager";
 import { useSound } from "@/context/SoundContext";
 
 const PenthouseHologram = ({
@@ -77,9 +84,8 @@ const PenthouseHologram = ({
             const inPulsePhase = holdTimeRef.current < 10.0;
 
             // Stop landing intro music when holding completes (10 seconds)
-            if (!inPulsePhase && landingIntroMusic && !landingIntroMusic.paused) {
-                landingIntroMusic.pause();
-                landingIntroMusic.currentTime = 0;
+            if (!inPulsePhase) {
+                pauseLandingIntroMusic();
             }
 
             if (inPulsePhase) {
@@ -132,10 +138,7 @@ const PenthouseHologram = ({
                 syntheticMusic.currentTime = 0;
             }
             // Restart landing intro music when released
-            if (landingIntroMusic) {
-                landingIntroMusic.currentTime = 0;
-                landingIntroMusic.play().catch(() => { });
-            }
+            startLandingIntroMusic();
         }
 
         const targetHold = interactionState.current.isHolding ? 1.0 : 0.0;
@@ -205,7 +208,6 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
     });
 
     // Audio references
-    const landingIntroMusic = useRef<HTMLAudioElement | null>(null);
     const syntheticMusic = useRef<HTMLAudioElement | null>(null);
     const landingIntroStarted = useRef(false);
 
@@ -214,20 +216,9 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
     // Initialize audio on mount
     useEffect(() => {
         if (typeof window !== "undefined") {
-            // Landing intro music
-            landingIntroMusic.current = new Audio('/sounds/SFX/landing_intro.mp3');
-            landingIntroMusic.current.loop = true;
-            landingIntroMusic.current.volume = 0.3;
-            landingIntroMusic.current.muted = !isSoundEnabled;
-            connectSourceToAnalyser(landingIntroMusic.current);
-
-            // Try to play, but it might be blocked by browser
-            landingIntroMusic.current.play().then(() => {
-                landingIntroStarted.current = true;
-            }).catch(() => {
-                // Autoplay was blocked, will retry on user interaction
-                console.log("Autoplay blocked, waiting for user interaction");
-            });
+            // Try to play landing intro music, but it might be blocked by browser
+            startLandingIntroMusic();
+            landingIntroStarted.current = true;
 
             // Synthetic music
             syntheticMusic.current = new Audio('/sounds/SFX/synthetic-music.mp3');
@@ -238,11 +229,7 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
         }
 
         return () => {
-            // Cleanup all audio on unmount
-            if (landingIntroMusic.current) {
-                landingIntroMusic.current.pause();
-                landingIntroMusic.current = null;
-            }
+            // Cleanup synthetic music
             if (syntheticMusic.current) {
                 syntheticMusic.current.pause();
                 syntheticMusic.current = null;
@@ -252,9 +239,6 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
 
     // Sync mute state on change
     useEffect(() => {
-        if (landingIntroMusic.current) {
-            landingIntroMusic.current.muted = !isSoundEnabled;
-        }
         if (syntheticMusic.current) {
             syntheticMusic.current.muted = !isSoundEnabled;
         }
@@ -269,10 +253,9 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
             globalMouse.current.set(x, y);
 
             // Try to start landing intro if it hasn't started yet (autoplay was blocked)
-            if (!landingIntroStarted.current && landingIntroMusic.current) {
-                landingIntroMusic.current.play().then(() => {
-                    landingIntroStarted.current = true;
-                }).catch(() => { });
+            if (!landingIntroStarted.current) {
+                startLandingIntroMusic();
+                landingIntroStarted.current = true;
             }
         };
 
@@ -318,8 +301,8 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
 
     useGSAP(() => {
         if (greeting && greetingRef.current) {
-            gsap.fromTo(greetingRef.current, 
-                { opacity: 0, y: 30 }, 
+            gsap.fromTo(greetingRef.current,
+                { opacity: 0, y: 30 },
                 { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", delay: 0.5 }
             );
         }
@@ -362,13 +345,8 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
             syntheticMusic.current.currentTime = 0;
         }
 
-        // Stop landing intro if still playing
-        if (landingIntroMusic.current) {
-            landingIntroMusic.current.pause();
-            landingIntroMusic.current.currentTime = 0;
-        }
-
-        // Start both experience background music and wind-n-grass using global audio manager
+        // Stop landing intro and start experience audio
+        stopLandingIntroMusic();
         startExperienceBackgroundMusic();
         startWindGrassSound();
 
@@ -396,7 +374,7 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
             <ShaderBackground
                 globalMouse={globalMouse}
                 interactionState={interactionState}
-                landingIntroMusic={landingIntroMusic.current}
+                landingIntroMusic={null}
                 syntheticMusic={syntheticMusic.current}
             />
             <div ref={contentRef} className="absolute inset-0 z-20 w-full h-full pointer-events-none">
@@ -426,7 +404,7 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
                 {/* CENTER HOLD INDICATOR */}
                 {greeting && (
                     <div ref={greetingRef} className="absolute top-[23%] left-1/2 transform -translate-x-1/2 text-center pointer-events-none z-30 opacity-0">
-                         <span className="font-playfair text-2xl md:text-3xl italic text-[#231F20] opacity-80">{greeting}</span>
+                        <span className="font-playfair text-2xl md:text-3xl italic text-[#231F20] opacity-80">{greeting}</span>
                     </div>
                 )}
 
