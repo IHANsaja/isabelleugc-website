@@ -50,6 +50,7 @@ const CityShaderMaterialImpl = shaderMaterial(
 
     // Simulation of office lights for night city
     float hash(vec2 p) {
+      p = mod(p, 100.0); // Fix precision issues
       return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
     }
 
@@ -61,7 +62,7 @@ const CityShaderMaterialImpl = shaderMaterial(
       float lighting = diff * 0.6 + ambient;
 
       // Grid mapping for windows - use world space for consistency
-      float scale = 4.0; 
+      float scale = 2.0; 
       vec2 gridUv;
       
       vec3 absNormal = abs(vNormal);

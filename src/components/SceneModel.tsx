@@ -2,13 +2,14 @@
 
 import * as THREE from 'three'
 import React, { useRef } from 'react'
-import { useGLTF, MeshTransmissionMaterial } from '@react-three/drei'
+import { useGLTF, MeshTransmissionMaterial, useVideoTexture } from '@react-three/drei'
 import { RigidBody } from '@react-three/rapier'
 import { GLTF } from 'three-stdlib'
 import { ThreeElements, useFrame } from '@react-three/fiber'
 import './shaders/CityShaderMaterial' // Register the custom shader material
 import './shaders/CityGroundShaderMaterial' // Register the custom ground shader material
 import './shaders/CloudShaderMaterial' // Register the custom cloud shader material
+import { WaterPool } from './shaders/WaterShaderMaterial'
 
 type GLTFResult = GLTF & {
     nodes: {
@@ -41,21 +42,31 @@ export function SceneModel(props: ThreeElements['group']) {
         }
     });
 
+    const videoTexture = useVideoTexture('/videos/example_video.mp4')
+
     return (
         <group {...props} dispose={null}>
+            {/* Added Cloud Layer */}
+            <mesh position={[0, -18, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <planeGeometry args={[1500, 1500]} />
+                <cloudShaderMaterial ref={cloudMat} transparent depthWrite={false} side={THREE.DoubleSide} />
+            </mesh>
+
             <RigidBody type="fixed" colliders="trimesh" position={[0, -23.641, 0]}>
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.City_City_0.geometry}
-                    material={materials.City}
-                />
+                >
+                    <cityShaderMaterial />
+                </mesh>
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.City_City_0001.geometry}
-                    material={materials.City}
-                />
+                >
+                    <cityShaderMaterial />
+                </mesh>
             </RigidBody>
             <group position={[8.047, 0.288, -2.653]}>
                 <RigidBody type="fixed" colliders="trimesh">
@@ -612,12 +623,8 @@ export function SceneModel(props: ThreeElements['group']) {
                     geometry={nodes.pine_trees.geometry}
                     material={materials.cypres___mat_cypres_feuille}
                 />
-                <mesh
-                    castShadow
-                    receiveShadow
-                    geometry={nodes.pool_water.geometry}
-                    material={materials.texture_eau_piscine_ovcol5ca1d7colpic11contpic01}
-                />
+                {/* Replaced Water Pool with Custom Component */}
+                <WaterPool geometry={nodes.pool_water.geometry} />
                 <mesh
                     castShadow
                     receiveShadow
@@ -634,8 +641,14 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.tv_screen_1.geometry}
-                    material={materials['mirror.nocompress']}
-                />
+                >
+                     <meshBasicMaterial 
+                        map={videoTexture} 
+                        toneMapped={false} 
+                        polygonOffset 
+                        polygonOffsetFactor={-1} 
+                    />
+                </mesh>
                 <mesh
                     castShadow
                     receiveShadow
@@ -661,16 +674,20 @@ export function SceneModel(props: ThreeElements['group']) {
                 />
             </RigidBody>
             <RigidBody type="fixed" colliders="trimesh">
+                {/* Replaced City Ground with Shader */}
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.city_ground.geometry}
-                    material={nodes.city_ground.material}
                     position={[0, -23.641, 0]}
-                />
+                    ref={groundMat} // groundMat ref used for rotation logic?? No, for updating shader uniforms.
+                >
+                    <cityGroundShaderMaterial ref={groundMat} />
+                </mesh>
             </RigidBody>
         </group>
     )
 }
+
 
 useGLTF.preload('/models/scene.glb')

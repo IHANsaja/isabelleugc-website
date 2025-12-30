@@ -105,7 +105,7 @@ const Player = () => {
     return (
         <RigidBody
             ref={rigidBodyRef}
-            position={[8, 2, -2.5]}
+            position={[8, 2, 2.5]}
             enabledRotations={[false, false, false]} // Lock rotation
             mass={1}
             type="dynamic"
