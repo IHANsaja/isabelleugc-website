@@ -91,7 +91,7 @@ export function SceneModel(props: ThreeElements['group']) {
         }
     }, [nodes]);
 
-    const videoTexture = useVideoTexture('/videos/example_video.mp4', {
+    const videoTexture = useVideoTexture('/videos/example-2.mp4', {
         unsuspend: 'canplay',
         muted: false,
         loop: true,
