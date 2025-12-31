@@ -23,15 +23,15 @@ const PenthouseHologram = ({
     landingIntroMusic,
     syntheticMusic,
     position,
-    isShattering,
-    onShatterComplete
+    startAnimationSequence,
+    onAnimationComplete
 }: {
     globalMouse: React.MutableRefObject<THREE.Vector2>,
     landingIntroMusic: HTMLAudioElement | null,
     syntheticMusic: HTMLAudioElement | null,
     position?: [number, number, number],
-    isShattering: boolean,
-    onShatterComplete: () => void
+    startAnimationSequence: boolean,
+    onAnimationComplete: () => void
 }) => {
     const { scene } = useGLTF('/models/penthouse.glb');
     
@@ -93,7 +93,13 @@ const PenthouseHologram = ({
     }, []);
 
     const material = useMemo(() => new LoaderShaderMaterial(), []);
+
+    // Animation Refs
+    const glowProgressRef = useRef(0);
     const shatterProgressRef = useRef(0);
+    const isGlowingRef = useRef(false);
+    const isShatteringRef = useRef(false);
+
     const { isSoundEnabled } = useSound();
 
     // Sync mute state for local sounds
@@ -101,21 +107,44 @@ const PenthouseHologram = ({
         if (sonarSound) sonarSound.muted = !isSoundEnabled;
         if (modeInitiationSound) modeInitiationSound.muted = !isSoundEnabled;
     }, [isSoundEnabled, sonarSound, modeInitiationSound]);
+    
+    // Trigger sequence when prop changes
+    useEffect(() => {
+        if (startAnimationSequence) {
+             isGlowingRef.current = true;
+        }
+    }, [startAnimationSequence]);
 
     useFrame((state, delta) => {
         material.uTime += delta;
         material.uMouse.set(globalMouse.current.x, globalMouse.current.y);
-
-        // ALWAYS IDLE STATE (Removed Hold Logic)
-        material.uHold = 0;
+        material.uHold = 0; // Always IDLE until animation starts
         
-        // Shatter Logic
-        if (isShattering) {
-            shatterProgressRef.current += delta * 0.5; // Controls speed of shatter
+        // 1. GLOW PHASE
+        if (isGlowingRef.current) {
+            glowProgressRef.current += delta * 1.5; // Glow speed (approx 0.7s)
+            
+            const glow = Math.min(glowProgressRef.current, 1.0);
+            material.uGlowFull = glow;
+            
+            // Once fully glowing, trigger shatter
+            if (glow >= 1.0) {
+                isGlowingRef.current = false;
+                isShatteringRef.current = true;
+            }
+        }
+        
+        // 2. SHATTER PHASE
+        if (isShatteringRef.current) {
+            shatterProgressRef.current += delta * 0.5; // Shatter speed
+            
+            // Wait a tiny bit at full glow before starting shatter movement?
+            // Currently immediate transition.
+            
             material.uShatter = Math.min(shatterProgressRef.current, 1.0);
             
-            if (shatterProgressRef.current > 1.5) { // Wait a bit after full shatter
-                 onShatterComplete();
+            if (shatterProgressRef.current > 1.5) { // Wait after shatter
+                 onAnimationComplete();
             }
         }
     });
@@ -135,14 +164,14 @@ const ShaderBackground = ({
     globalMouse,
     landingIntroMusic,
     syntheticMusic,
-    isShattering,
-    onShatterComplete
+    startAnimationSequence,
+    onAnimationComplete
 }: {
     globalMouse: React.MutableRefObject<THREE.Vector2>,
     landingIntroMusic: HTMLAudioElement | null,
     syntheticMusic: HTMLAudioElement | null,
-    isShattering: boolean,
-    onShatterComplete: () => void
+    startAnimationSequence: boolean,
+    onAnimationComplete: () => void
 }) => (
     <div className="absolute inset-0 w-full h-full">
         <Canvas camera={{ position: [0, 10, 15], fov: 100 }} gl={{ preserveDrawingBuffer: true, antialias: false }}>
@@ -152,8 +181,8 @@ const ShaderBackground = ({
                     landingIntroMusic={landingIntroMusic}
                     syntheticMusic={syntheticMusic}
                     position={[0, 0, 4]}
-                    isShattering={isShattering}
-                    onShatterComplete={onShatterComplete}
+                    startAnimationSequence={startAnimationSequence}
+                    onAnimationComplete={onAnimationComplete}
                 />
             </Suspense>
             <ambientLight intensity={1} />
@@ -168,7 +197,7 @@ interface PreLoaderExperienceProps {
 const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) => {
     const { progress } = useProgress();
     const [showEnter, setShowEnter] = useState(false);
-    const [isShattering, setIsShattering] = useState(false);
+    const [startAnimation, setStartAnimation] = useState(false);
     const [removed, setRemoved] = useState(false);
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -277,14 +306,14 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
     
     // Triggered when button is clicked
     const handleEnterClick = () => {
-        setIsShattering(true);
-        // Fade out UI immediately
+        setStartAnimation(true);
+        // Fade out UI immediately so we see the full glow effect clearly
         if (contentRef.current) {
              gsap.to(contentRef.current, { opacity: 0, duration: 0.5 });
         }
     };
 
-    // Triggered by onShatterComplete callback from Hologram
+    // Triggered by onAnimationComplete callback from Hologram (after shatter)
     const finishIntroduction = () => {
         // Stop synthetic music
         if (syntheticMusic.current) {
@@ -322,8 +351,8 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
                 globalMouse={globalMouse}
                 landingIntroMusic={null}
                 syntheticMusic={syntheticMusic.current}
-                isShattering={isShattering}
-                onShatterComplete={finishIntroduction}
+                startAnimationSequence={startAnimation}
+                onAnimationComplete={finishIntroduction}
             />
             <div ref={contentRef} className="absolute inset-0 z-20 w-full h-full pointer-events-none">
 
