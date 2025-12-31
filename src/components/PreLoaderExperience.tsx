@@ -20,6 +20,7 @@ import { useSound } from "@/context/SoundContext";
 
 const PenthouseHologram = ({
     globalMouse,
+    interactionState,
     landingIntroMusic,
     syntheticMusic,
     position,
@@ -27,6 +28,7 @@ const PenthouseHologram = ({
     onAnimationComplete
 }: {
     globalMouse: React.MutableRefObject<THREE.Vector2>,
+    interactionState: React.MutableRefObject<{ isHolding: boolean; clickPos: THREE.Vector2; clickTime: number; }>,
     landingIntroMusic: HTMLAudioElement | null,
     syntheticMusic: HTMLAudioElement | null,
     position?: [number, number, number],
@@ -50,6 +52,10 @@ const PenthouseHologram = ({
                 const count = positionAttribute.count; // Total vertices
                 
                 const randomArray = new Float32Array(count * 3);
+                const dropArray = new Float32Array(count); // NEW: Drop flag
+                
+                // Check if this is the bottom building part
+                const isBottom = mesh.name === 'building_bottom';
                 
                 // Iterate over triangles (3 vertices per triangle)
                 for (let i = 0; i < count; i += 3) {
@@ -63,10 +69,15 @@ const PenthouseHologram = ({
                         randomArray[(i + j) * 3] = rX;
                         randomArray[(i + j) * 3 + 1] = rY;
                         randomArray[(i + j) * 3 + 2] = rZ;
+                        
+                        // Assign drop flag
+                        dropArray[i + j] = isBottom ? 1.0 : 0.0;
                     }
                 }
                 
                 nonIndexedGeo.setAttribute('aRandom', new THREE.BufferAttribute(randomArray, 3));
+                nonIndexedGeo.setAttribute('aDrop', new THREE.BufferAttribute(dropArray, 1));
+                
                 mesh.geometry = nonIndexedGeo;
             }
         });
@@ -100,6 +111,12 @@ const PenthouseHologram = ({
     const isGlowingRef = useRef(false);
     const isShatteringRef = useRef(false);
 
+    // Hold Logic Refs
+    const holdTimeRef = useRef(0);
+    const modeInitiationPlayedRef = useRef(false);
+    const syntheticMusicPlayedRef = useRef(false);
+    const SONAR_CYCLE = 2.5; 
+
     const { isSoundEnabled } = useSound();
 
     // Sync mute state for local sounds
@@ -118,32 +135,90 @@ const PenthouseHologram = ({
     useFrame((state, delta) => {
         material.uTime += delta;
         material.uMouse.set(globalMouse.current.x, globalMouse.current.y);
-        material.uHold = 0; // Always IDLE until animation starts
         
-        // 1. GLOW PHASE
+        // --- 1. HOLD LOGIC (Only active if NOT finishing) ---
+        if (!startAnimationSequence) {
+            if (interactionState.current.isHolding) {
+                holdTimeRef.current += delta;
+                
+                // Only play audio during the sonar pulse phase (0-10 seconds)
+                const inPulsePhase = holdTimeRef.current < 10.0;
+
+                if (!inPulsePhase) {
+                    pauseLandingIntroMusic();
+                }
+
+                if (inPulsePhase) {
+                    const cyclePosition = (material.uTime % SONAR_CYCLE) / SONAR_CYCLE;
+                    const prevCyclePosition = ((material.uTime - delta) % SONAR_CYCLE) / SONAR_CYCLE;
+                    const waveReset = prevCyclePosition > cyclePosition;
+
+                    if (waveReset && sonarSound) {
+                        sonarSound.currentTime = 0;
+                        sonarSound.play().catch(() => { });
+                    }
+                } else {
+                    if (sonarSound) {
+                        sonarSound.pause();
+                        sonarSound.currentTime = 0;
+                    }
+
+                    if (!modeInitiationPlayedRef.current && modeInitiationSound) {
+                        modeInitiationSound.currentTime = 0;
+                        modeInitiationSound.volume = 0.5;
+                        modeInitiationSound.play().catch(() => { });
+                        modeInitiationPlayedRef.current = true;
+                    }
+
+                    if (!syntheticMusicPlayedRef.current && syntheticMusic) {
+                        syntheticMusic.currentTime = 0;
+                        syntheticMusic.play().catch(() => { });
+                        syntheticMusicPlayedRef.current = true;
+                    }
+                }
+            } else {
+                // Reset on release
+                holdTimeRef.current = 0;
+                modeInitiationPlayedRef.current = false;
+                syntheticMusicPlayedRef.current = false;
+                if (sonarSound) {
+                    sonarSound.pause();
+                    sonarSound.currentTime = 0;
+                }
+                if (syntheticMusic) {
+                    syntheticMusic.pause();
+                    syntheticMusic.currentTime = 0;
+                }
+                startLandingIntroMusic();
+            }
+
+            const targetHold = interactionState.current.isHolding ? 1.0 : 0.0;
+            material.uHold += (targetHold - material.uHold) * delta * 5.0;
+            material.uHoldTime = holdTimeRef.current;
+        } else {
+            // If finishing, force hold to 0 or freeze? 
+            // Better to freeze current logic and override with Glow
+            material.uHold = 0; 
+        }
+        
+        // --- 2. ENDING SEQUENCE ---
+        
+        // GLOW PHASE
         if (isGlowingRef.current) {
-            glowProgressRef.current += delta * 1.5; // Glow speed (approx 0.7s)
-            
+            glowProgressRef.current += delta * 1.5; 
             const glow = Math.min(glowProgressRef.current, 1.0);
             material.uGlowFull = glow;
-            
-            // Once fully glowing, trigger shatter
             if (glow >= 1.0) {
                 isGlowingRef.current = false;
                 isShatteringRef.current = true;
             }
         }
         
-        // 2. SHATTER PHASE
+        // SHATTER PHASE
         if (isShatteringRef.current) {
-            shatterProgressRef.current += delta * 0.5; // Shatter speed
-            
-            // Wait a tiny bit at full glow before starting shatter movement?
-            // Currently immediate transition.
-            
+            shatterProgressRef.current += delta * 0.5; 
             material.uShatter = Math.min(shatterProgressRef.current, 1.0);
-            
-            if (shatterProgressRef.current > 1.5) { // Wait after shatter
+            if (shatterProgressRef.current > 1.5) { 
                  onAnimationComplete();
             }
         }
@@ -162,12 +237,14 @@ const PenthouseHologram = ({
 
 const ShaderBackground = ({
     globalMouse,
+    interactionState,
     landingIntroMusic,
     syntheticMusic,
     startAnimationSequence,
     onAnimationComplete
 }: {
     globalMouse: React.MutableRefObject<THREE.Vector2>,
+    interactionState: React.MutableRefObject<{ isHolding: boolean; clickPos: THREE.Vector2; clickTime: number; }>,
     landingIntroMusic: HTMLAudioElement | null,
     syntheticMusic: HTMLAudioElement | null,
     startAnimationSequence: boolean,
@@ -178,6 +255,7 @@ const ShaderBackground = ({
             <Suspense fallback={null}>
                 <PenthouseHologram
                     globalMouse={globalMouse}
+                    interactionState={interactionState}
                     landingIntroMusic={landingIntroMusic}
                     syntheticMusic={syntheticMusic}
                     position={[0, 0, 4]}
@@ -199,6 +277,10 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
     const [showEnter, setShowEnter] = useState(false);
     const [startAnimation, setStartAnimation] = useState(false);
     const [removed, setRemoved] = useState(false);
+    
+    // Hold State
+    const [isHolding, setIsHolding] = useState(false);
+    const [holdTime, setHoldTime] = useState(0);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
@@ -206,6 +288,11 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
     const progressTextRef = useRef<HTMLSpanElement>(null);
 
     const globalMouse = useRef(new THREE.Vector2(0, 0));
+    const interactionState = useRef({
+        isHolding: false,
+        clickPos: new THREE.Vector2(-10, -10),
+        clickTime: -100
+    });
     
     // Audio references
     const syntheticMusic = useRef<HTMLAudioElement | null>(null);
@@ -258,14 +345,33 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
                 landingIntroStarted.current = true;
             }
         };
+        
+        const handleMouseDown = (e: MouseEvent) => {
+            if (startAnimation) return; // Disable hold if animation started
+            if ((e.target as HTMLElement).tagName === 'BUTTON' || (e.target as HTMLElement).closest('button')) {
+                return;
+            }
+            interactionState.current.isHolding = true;
+            setIsHolding(true);
+        };
+
+        const handleMouseUp = () => {
+            interactionState.current.isHolding = false;
+            setIsHolding(false);
+            setHoldTime(0);
+        };
 
         window.addEventListener("mousemove", handleMouseMove);
+        window.addEventListener("mousedown", handleMouseDown);
+        window.addEventListener("mouseup", handleMouseUp);
 
         return () => {
             document.body.style.overflow = '';
             window.removeEventListener("mousemove", handleMouseMove);
+            window.removeEventListener("mousedown", handleMouseDown);
+            window.removeEventListener("mouseup", handleMouseUp);
         };
-    }, []);
+    }, [startAnimation]);
 
     // Greeting Logic
     const [greeting, setGreeting] = useState("");
@@ -296,6 +402,19 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
             return () => clearTimeout(timer);
         }
     }, [progress]);
+    
+    // Update hold time for countdown display
+    useEffect(() => {
+        let animationFrameId: number;
+        const updateHoldTime = () => {
+            if (isHolding) {
+                setHoldTime(prev => Math.min(prev + 0.016, 10)); 
+            }
+            animationFrameId = requestAnimationFrame(updateHoldTime);
+        };
+        animationFrameId = requestAnimationFrame(updateHoldTime);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [isHolding]);
 
     useGSAP(() => {
         if (showEnter && buttonRef.current) {
@@ -307,7 +426,7 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
     // Triggered when button is clicked
     const handleEnterClick = () => {
         setStartAnimation(true);
-        // Fade out UI immediately so we see the full glow effect clearly
+        // Fade out UI immediately
         if (contentRef.current) {
              gsap.to(contentRef.current, { opacity: 0, duration: 0.5 });
         }
@@ -349,6 +468,7 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
         <div ref={containerRef} className="fixed inset-0 z-[9999] pointer-events-auto flex items-center justify-center font-instrument-sans text-[#231F20] bg-[#F6F3E8]">
             <ShaderBackground
                 globalMouse={globalMouse}
+                interactionState={interactionState}
                 landingIntroMusic={null}
                 syntheticMusic={syntheticMusic.current}
                 startAnimationSequence={startAnimation}
@@ -382,6 +502,27 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
                 {greeting && (
                     <div ref={greetingRef} className="absolute top-[23%] left-1/2 transform -translate-x-1/2 text-center pointer-events-none z-30 opacity-0">
                         <span className="font-playfair text-2xl md:text-3xl italic text-[#231F20] opacity-80">{greeting}</span>
+                    </div>
+                )}
+                
+                {/* HOLD INDICATOR (Restored) */}
+                {showEnter && (
+                    <div className="absolute top-32 left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center z-30 pointer-events-none select-none">
+                        <div className="relative flex flex-col items-center justify-center gap-4 bg-[#F6F3E8]/80 backdrop-blur-md rounded-full p-6 shadow-lg border border-[#231F20]/10">
+                            <div className="relative w-24 h-24 flex items-center justify-center">
+                                <svg className="absolute w-full h-full transform -rotate-90">
+                                    <circle cx="48" cy="48" r="44" stroke="#231F20" strokeWidth="2" fill="none" className="opacity-10" />
+                                    <circle cx="48" cy="48" r="44" stroke="#231F20" strokeWidth="3" fill="none" strokeDasharray="276" strokeDashoffset={isHolding ? "0" : "276"} className={`transition-[stroke-dashoffset] ease-linear ${isHolding ? "duration-[10000ms]" : "duration-300"}`} />
+                                </svg>
+                                <div className={`w-px h-12 bg-[#231F20] opacity-20 ${!isHolding ? "animate-pulse" : "h-16 opacity-40"} transition-all duration-500`}></div>
+                            </div>
+                            <div className="flex flex-col items-center gap-1">
+                                <span className="text-[10px] font-bold tracking-[0.3em] opacity-80">{isHolding ? "KEEP HOLDING..." : "HOLD TO REVEAL"}</span>
+                                <span className="text-[9px] font-instrument-sans italic opacity-50">
+                                    {isHolding ? `(${Math.max(0, Math.ceil(10 - holdTime))} Seconds)` : "(10 Seconds)"}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 )}
 

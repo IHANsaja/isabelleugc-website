@@ -10,12 +10,14 @@ const LoaderShaderMaterial = shaderMaterial(
     uMouse: new THREE.Vector2(0, 0),
     uHold: 0, // 0 to 1
     uHoldTime: 0.0,
-    uShatter: 0.0, // 0 to 1
-    uGlowFull: 0.0, // NEW: 0 to 1 (Full Body Glow)
+    uShatter: 0, // 0 to 1
+    uGlowFull: 0, // 0 to 1
+    solidGlow: new THREE.Color("#FFFFFF") // Bright white for glow
   },
   // Vertex Shader
   `
     attribute vec3 aRandom; // random direction per triangle
+    attribute float aDrop; // 1.0 if mesh should drop, 0.0 if fly
     
     varying vec2 vUv;
     varying vec3 vNormal;
@@ -30,17 +32,24 @@ const LoaderShaderMaterial = shaderMaterial(
       vNormal = normalize(normalMatrix * normal);
       
       // SHATTER LOGIC
-      // Move out along normal + random direction
-      // Add some "wind" drifting (e.g. to the right and back)
+      vec3 disp = vec3(0.0);
+      float s = uShatter;
+      float s2 = s * s;   // Quadratic
       
-      vec3 windDir = vec3(2.0, 1.0, -2.0); 
-      vec3 shatterDir = normalize(normal + aRandom); 
+      if (aDrop > 0.5) {
+           // DROP DOWN
+           // "go directly down from separating"
+           vec3 dropDir = vec3(0.0, -1.0, 0.0);
+           // Drop faster and further
+           disp = (dropDir * 25.0 + aRandom * 0.5) * s2;
+      } else {
+           // WIND UP/AWAY (Standard)
+           vec3 windDir = vec3(2.0, 1.0, -2.0); 
+           vec3 shatterDir = normalize(normal + aRandom); 
+           disp = (shatterDir * 3.0 + windDir * 10.0) * s2; 
+      }
       
-      // Quadratic acceleration
-      float shatter = uShatter;
-      vec3 displacement = (shatterDir * 3.0 + windDir * 10.0) * shatter * shatter; 
-      
-      vec3 pos = position + displacement;
+      vec3 pos = position + disp;
 
       vPosition = pos;
       
@@ -62,7 +71,8 @@ const LoaderShaderMaterial = shaderMaterial(
     uniform float uHold;
     uniform float uHoldTime;
     uniform float uShatter;
-    uniform float uGlowFull; // NEW
+    uniform float uGlowFull;
+    uniform vec3 solidGlow;
     
     varying vec2 vUv;
     varying vec3 vNormal;
@@ -71,9 +81,6 @@ const LoaderShaderMaterial = shaderMaterial(
     varying vec3 vViewPosition;
 
     void main() {
-      // Discard if fully shattered to avoid artifacts
-      if (uShatter > 0.95) discard;
-
       // Normalization
       vec3 normal = normalize(vNormal);
       vec3 viewDir = normalize(vViewPosition);
@@ -159,8 +166,6 @@ const LoaderShaderMaterial = shaderMaterial(
       vec3 base = mix(uColorStart, uColorEnd, fresnel);
 
       // 2. Apply Interaction States
-      
-      // 2. Apply Interaction States
       if (isHolding > 0.5) {
           // HOLD STATE
           // Base: Pure Palette
@@ -196,6 +201,7 @@ const LoaderShaderMaterial = shaderMaterial(
 
       // Add Mouse Glow
       base += vec3(0.1) * mouseGlow;
+
 
 
       // F. Final Effect: Golden Holographic Ascent (Palette Match + Animation)
@@ -237,26 +243,36 @@ const LoaderShaderMaterial = shaderMaterial(
       
       // Mix from current Base (Scan) to Final Look based on timer
       base = mix(base, finalLook, finalEffect);
-
-      // --- FULL GLOW OVERRIDE (Before Shatter) ---
+      
+      // --- ENDING SEQUENCE: FULL GLOW & SHATTER --- (Override)
+      
       if (uGlowFull > 0.0) {
-           // Create a super bright, solid glow color (e.g., pure light cream/white gold)
-           vec3 solidGlow = uColorStart * 1.5; 
-           
-           // Mix based on uGlowFull (0 -> 1)
-           base = mix(base, solidGlow, uGlowFull);
+           // Simple mixing toward solid bright color
+           base = mix(base, solidGlow, uGlowFull * uGlowFull);
+      }
+      
+      // Fade out broken bits
+      if (uShatter > 0.0) {
+          float dist = uShatter;
+          // Fade alpha or just darken?
+          // Let's just fade to white/transparent
+          // Discard highly shattered fragments to reduce clutter?
+          if (uShatter > 0.95) discard;
       }
 
-      // Fade out on shatter
-      base *= (1.0 - uShatter);
-
-      gl_FragColor = vec4(base, 1.0 - uShatter); // Fade alpha too
+      gl_FragColor = vec4(base, 1.0 - uShatter);
     }
   `
 );
 
 extend({ LoaderShaderMaterial });
 
-
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      loaderShaderMaterial: ReactThreeFiber.Object3DNode<THREE.ShaderMaterial, typeof LoaderShaderMaterial>;
+    }
+  }
+}
 
 export { LoaderShaderMaterial };
