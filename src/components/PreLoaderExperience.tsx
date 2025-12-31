@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useProgress, useGLTF } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { LoaderShaderMaterial } from "./shaders/LoaderShaderMaterial";
 import * as THREE from "three";
-import { Suspense, useMemo } from "react";
+import { Suspense } from "react";
 import {
     startExperienceBackgroundMusic,
     startWindGrassSound,
@@ -20,19 +20,58 @@ import { useSound } from "@/context/SoundContext";
 
 const PenthouseHologram = ({
     globalMouse,
-    interactionState,
     landingIntroMusic,
     syntheticMusic,
-    position
+    position,
+    isShattering,
+    onShatterComplete
 }: {
     globalMouse: React.MutableRefObject<THREE.Vector2>,
-    interactionState: React.MutableRefObject<{ isHolding: boolean; clickPos: THREE.Vector2; clickTime: number; }>,
     landingIntroMusic: HTMLAudioElement | null,
     syntheticMusic: HTMLAudioElement | null,
-    position?: [number, number, number]
+    position?: [number, number, number],
+    isShattering: boolean,
+    onShatterComplete: () => void
 }) => {
     const { scene } = useGLTF('/models/penthouse.glb');
-    const clonedScene = useMemo(() => scene.clone(), [scene]);
+    
+    // Geometry processing for shatter effect
+    const processedScene = useMemo(() => {
+        const cloned = scene.clone();
+        cloned.traverse((obj) => {
+            if ((obj as THREE.Mesh).isMesh) {
+                const mesh = obj as THREE.Mesh;
+                
+                // 1. Convert to non-indexed geometry to separate triangles
+                const nonIndexedGeo = mesh.geometry.toNonIndexed();
+                
+                // 2. Add random attribute for each triangle
+                const positionAttribute = nonIndexedGeo.getAttribute('position');
+                const count = positionAttribute.count; // Total vertices
+                
+                const randomArray = new Float32Array(count * 3);
+                
+                // Iterate over triangles (3 vertices per triangle)
+                for (let i = 0; i < count; i += 3) {
+                    // Generate random vector for this triangle
+                    const rX = (Math.random() - 0.5) * 2.0; 
+                    const rY = (Math.random() - 0.5) * 2.0; 
+                    const rZ = (Math.random() - 0.5) * 2.0; 
+                    
+                    // Assign same random vector to all 3 vertices of the triangle
+                    for (let j = 0; j < 3; j++) {
+                        randomArray[(i + j) * 3] = rX;
+                        randomArray[(i + j) * 3 + 1] = rY;
+                        randomArray[(i + j) * 3 + 2] = rZ;
+                    }
+                }
+                
+                nonIndexedGeo.setAttribute('aRandom', new THREE.BufferAttribute(randomArray, 3));
+                mesh.geometry = nonIndexedGeo;
+            }
+        });
+        return cloned;
+    }, [scene]);
 
     // 1. Initialize Audio (Loop disabled because we trigger it manually)
     const sonarSound = useMemo(() => {
@@ -54,16 +93,7 @@ const PenthouseHologram = ({
     }, []);
 
     const material = useMemo(() => new LoaderShaderMaterial(), []);
-    const holdTimeRef = useRef(0);
-    const modeInitiationPlayedRef = useRef(false);
-    const syntheticMusicPlayedRef = useRef(false);
-
-    // Shader sonar wave timing: scanSpeed = 0.4, distance = 24 units
-    // Wave cycle period = distance / speed = 24 / 0.4 = 60 seconds per full cycle
-    // But the wave travels 24 units total, creating a pulse every time it resets
-    // fract(uTime * 0.4) resets every 1/0.4 = 2.5 seconds
-    const SONAR_CYCLE = 2.5; // Matches shader's scan wave reset period
-
+    const shatterProgressRef = useRef(0);
     const { isSoundEnabled } = useSound();
 
     // Sync mute state for local sounds
@@ -76,107 +106,54 @@ const PenthouseHologram = ({
         material.uTime += delta;
         material.uMouse.set(globalMouse.current.x, globalMouse.current.y);
 
-        if (interactionState.current.isHolding) {
-            holdTimeRef.current += delta;
-
-            // Only play audio during the sonar pulse phase (0-10 seconds)
-            // After 10 seconds, the final holographic effect starts and pulses stop
-            const inPulsePhase = holdTimeRef.current < 10.0;
-
-            // Stop landing intro music when holding completes (10 seconds)
-            if (!inPulsePhase) {
-                pauseLandingIntroMusic();
+        // ALWAYS IDLE STATE (Removed Hold Logic)
+        material.uHold = 0;
+        
+        // Shatter Logic
+        if (isShattering) {
+            shatterProgressRef.current += delta * 0.5; // Controls speed of shatter
+            material.uShatter = Math.min(shatterProgressRef.current, 1.0);
+            
+            if (shatterProgressRef.current > 1.5) { // Wait a bit after full shatter
+                 onShatterComplete();
             }
-
-            if (inPulsePhase) {
-                // Sync with shader's sonar wave cycle
-                // Calculate current position in the wave cycle
-                const cyclePosition = (material.uTime % SONAR_CYCLE) / SONAR_CYCLE;
-                const prevCyclePosition = ((material.uTime - delta) % SONAR_CYCLE) / SONAR_CYCLE;
-
-                // Detect when wave resets (cycle wraps from ~1.0 back to ~0.0)
-                const waveReset = prevCyclePosition > cyclePosition;
-
-                // Play sound at the start of each wave cycle
-                if (waveReset && sonarSound) {
-                    sonarSound.currentTime = 0;
-                    sonarSound.play().catch(() => { });
-                }
-            } else {
-                // Stop audio when entering final holographic phase
-                if (sonarSound) {
-                    sonarSound.pause();
-                    sonarSound.currentTime = 0;
-                }
-
-                // Play Mode_Initiation sound once when entering final phase
-                if (!modeInitiationPlayedRef.current && modeInitiationSound) {
-                    modeInitiationSound.currentTime = 0;
-                    modeInitiationSound.volume = 0.5;
-                    modeInitiationSound.play().catch(() => { });
-                    modeInitiationPlayedRef.current = true;
-                }
-
-                // Play synthetic music loop after Mode_Initiation
-                if (!syntheticMusicPlayedRef.current && syntheticMusic) {
-                    syntheticMusic.currentTime = 0;
-                    syntheticMusic.play().catch(() => { });
-                    syntheticMusicPlayedRef.current = true;
-                }
-            }
-        } else {
-            // Reset everything on release
-            holdTimeRef.current = 0;
-            modeInitiationPlayedRef.current = false;
-            syntheticMusicPlayedRef.current = false;
-            if (sonarSound) {
-                sonarSound.pause();
-                sonarSound.currentTime = 0;
-            }
-            if (syntheticMusic) {
-                syntheticMusic.pause();
-                syntheticMusic.currentTime = 0;
-            }
-            // Restart landing intro music when released
-            startLandingIntroMusic();
         }
-
-        const targetHold = interactionState.current.isHolding ? 1.0 : 0.0;
-        material.uHold += (targetHold - material.uHold) * delta * 5.0;
-        material.uHoldTime = holdTimeRef.current;
     });
 
     useEffect(() => {
-        clonedScene.traverse((obj) => {
+        processedScene.traverse((obj) => {
             if ((obj as THREE.Mesh).isMesh) {
                 (obj as THREE.Mesh).material = material;
             }
         });
-    }, [clonedScene, material]);
+    }, [processedScene, material]);
 
-    return <primitive object={clonedScene} position={position || [0, 0, 0]} rotation={[0, 0, 0]} />;
+    return <primitive object={processedScene} position={position || [0, 0, 0]} rotation={[0, 0, 0]} />;
 }
 
 const ShaderBackground = ({
     globalMouse,
-    interactionState,
     landingIntroMusic,
-    syntheticMusic
+    syntheticMusic,
+    isShattering,
+    onShatterComplete
 }: {
     globalMouse: React.MutableRefObject<THREE.Vector2>,
-    interactionState: React.MutableRefObject<{ isHolding: boolean; clickPos: THREE.Vector2; clickTime: number; }>,
     landingIntroMusic: HTMLAudioElement | null,
-    syntheticMusic: HTMLAudioElement | null
+    syntheticMusic: HTMLAudioElement | null,
+    isShattering: boolean,
+    onShatterComplete: () => void
 }) => (
     <div className="absolute inset-0 w-full h-full">
         <Canvas camera={{ position: [0, 10, 15], fov: 100 }} gl={{ preserveDrawingBuffer: true, antialias: false }}>
             <Suspense fallback={null}>
                 <PenthouseHologram
                     globalMouse={globalMouse}
-                    interactionState={interactionState}
                     landingIntroMusic={landingIntroMusic}
                     syntheticMusic={syntheticMusic}
                     position={[0, 0, 4]}
+                    isShattering={isShattering}
+                    onShatterComplete={onShatterComplete}
                 />
             </Suspense>
             <ambientLight intensity={1} />
@@ -191,9 +168,8 @@ interface PreLoaderExperienceProps {
 const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) => {
     const { progress } = useProgress();
     const [showEnter, setShowEnter] = useState(false);
+    const [isShattering, setIsShattering] = useState(false);
     const [removed, setRemoved] = useState(false);
-    const [isHolding, setIsHolding] = useState(false);
-    const [holdTime, setHoldTime] = useState(0);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
@@ -201,12 +177,7 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
     const progressTextRef = useRef<HTMLSpanElement>(null);
 
     const globalMouse = useRef(new THREE.Vector2(0, 0));
-    const interactionState = useRef({
-        isHolding: false,
-        clickPos: new THREE.Vector2(-10, -10),
-        clickTime: -100
-    });
-
+    
     // Audio references
     const syntheticMusic = useRef<HTMLAudioElement | null>(null);
     const landingIntroStarted = useRef(false);
@@ -259,29 +230,11 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
             }
         };
 
-        const handleMouseDown = (e: MouseEvent) => {
-            if ((e.target as HTMLElement).tagName === 'BUTTON' || (e.target as HTMLElement).closest('button')) {
-                return;
-            }
-            interactionState.current.isHolding = true;
-            setIsHolding(true);
-        };
-
-        const handleMouseUp = () => {
-            interactionState.current.isHolding = false;
-            setIsHolding(false);
-            setHoldTime(0);
-        };
-
         window.addEventListener("mousemove", handleMouseMove);
-        window.addEventListener("mousedown", handleMouseDown);
-        window.addEventListener("mouseup", handleMouseUp);
 
         return () => {
             document.body.style.overflow = '';
             window.removeEventListener("mousemove", handleMouseMove);
-            window.removeEventListener("mousedown", handleMouseDown);
-            window.removeEventListener("mouseup", handleMouseUp);
         };
     }, []);
 
@@ -315,30 +268,24 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
         }
     }, [progress]);
 
-    // Update hold time for countdown display
-    useEffect(() => {
-        let animationFrameId: number;
-        const updateHoldTime = () => {
-            if (isHolding) {
-                setHoldTime(prev => Math.min(prev + 0.016, 10)); // ~60fps, max 10s
-            }
-            animationFrameId = requestAnimationFrame(updateHoldTime);
-        };
-        animationFrameId = requestAnimationFrame(updateHoldTime);
-
-        return () => {
-            cancelAnimationFrame(animationFrameId);
-        };
-    }, [isHolding]);
-
     useGSAP(() => {
         if (showEnter && buttonRef.current) {
             gsap.fromTo(buttonRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 1, ease: "power3.out" });
             if (progressTextRef.current) gsap.to(progressTextRef.current, { opacity: 0, duration: 0.5 });
         }
     }, [showEnter]);
-
+    
+    // Triggered when button is clicked
     const handleEnterClick = () => {
+        setIsShattering(true);
+        // Fade out UI immediately
+        if (contentRef.current) {
+             gsap.to(contentRef.current, { opacity: 0, duration: 0.5 });
+        }
+    };
+
+    // Triggered by onShatterComplete callback from Hologram
+    const finishIntroduction = () => {
         // Stop synthetic music
         if (syntheticMusic.current) {
             syntheticMusic.current.pause();
@@ -373,9 +320,10 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
         <div ref={containerRef} className="fixed inset-0 z-[9999] pointer-events-auto flex items-center justify-center font-instrument-sans text-[#231F20] bg-[#F6F3E8]">
             <ShaderBackground
                 globalMouse={globalMouse}
-                interactionState={interactionState}
                 landingIntroMusic={null}
                 syntheticMusic={syntheticMusic.current}
+                isShattering={isShattering}
+                onShatterComplete={finishIntroduction}
             />
             <div ref={contentRef} className="absolute inset-0 z-20 w-full h-full pointer-events-none">
 
@@ -401,30 +349,10 @@ const PreLoaderExperience: React.FC<PreLoaderExperienceProps> = ({ onEnter }) =>
                     <span ref={progressTextRef} className="text-4xl md:text-6xl font-playfair font-medium">{Math.round(progress)}%</span>
                 </div>
 
-                {/* CENTER HOLD INDICATOR */}
+                {/* CENTER GREETING */}
                 {greeting && (
                     <div ref={greetingRef} className="absolute top-[23%] left-1/2 transform -translate-x-1/2 text-center pointer-events-none z-30 opacity-0">
                         <span className="font-playfair text-2xl md:text-3xl italic text-[#231F20] opacity-80">{greeting}</span>
-                    </div>
-                )}
-
-                {showEnter && (
-                    <div className="absolute top-32 left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center z-30 pointer-events-none select-none">
-                        <div className="relative flex flex-col items-center justify-center gap-4 bg-[#F6F3E8]/80 backdrop-blur-md rounded-full p-6 shadow-lg border border-[#231F20]/10">
-                            <div className="relative w-24 h-24 flex items-center justify-center">
-                                <svg className="absolute w-full h-full transform -rotate-90">
-                                    <circle cx="48" cy="48" r="44" stroke="#231F20" strokeWidth="2" fill="none" className="opacity-10" />
-                                    <circle cx="48" cy="48" r="44" stroke="#231F20" strokeWidth="3" fill="none" strokeDasharray="276" strokeDashoffset={isHolding ? "0" : "276"} className={`transition-[stroke-dashoffset] ease-linear ${isHolding ? "duration-[10000ms]" : "duration-300"}`} />
-                                </svg>
-                                <div className={`w-px h-12 bg-[#231F20] opacity-20 ${!isHolding ? "animate-pulse" : "h-16 opacity-40"} transition-all duration-500`}></div>
-                            </div>
-                            <div className="flex flex-col items-center gap-1">
-                                <span className="text-[10px] font-bold tracking-[0.3em] opacity-80">{isHolding ? "KEEP HOLDING..." : "HOLD TO REVEAL"}</span>
-                                <span className="text-[9px] font-instrument-sans italic opacity-50">
-                                    {isHolding ? `(${Math.max(0, Math.ceil(10 - holdTime))} Seconds)` : "(10 Seconds)"}
-                                </span>
-                            </div>
-                        </div>
                     </div>
                 )}
 

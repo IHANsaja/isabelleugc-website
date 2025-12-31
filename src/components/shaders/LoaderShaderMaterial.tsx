@@ -10,21 +10,41 @@ const LoaderShaderMaterial = shaderMaterial(
     uMouse: new THREE.Vector2(0, 0),
     uHold: 0, // 0 to 1
     uHoldTime: 0.0,
+    uShatter: 0.0, // 0 to 1
+    uGlowFull: 0.0, // NEW: 0 to 1 (Full Body Glow)
   },
   // Vertex Shader
   `
+    attribute vec3 aRandom; // random direction per triangle
+    
     varying vec2 vUv;
     varying vec3 vNormal;
     varying vec3 vPosition;
-    varying vec3 vWorldPosition; // NEW: Global Space
+    varying vec3 vWorldPosition; // Global Space
     varying vec3 vViewPosition;
+
+    uniform float uShatter;
 
     void main() {
       vUv = uv;
       vNormal = normalize(normalMatrix * normal);
-      vPosition = position;
       
-      vec4 worldPos = modelMatrix * vec4(position, 1.0);
+      // SHATTER LOGIC
+      // Move out along normal + random direction
+      // Add some "wind" drifting (e.g. to the right and back)
+      
+      vec3 windDir = vec3(2.0, 1.0, -2.0); 
+      vec3 shatterDir = normalize(normal + aRandom); 
+      
+      // Quadratic acceleration
+      float shatter = uShatter;
+      vec3 displacement = (shatterDir * 3.0 + windDir * 10.0) * shatter * shatter; 
+      
+      vec3 pos = position + displacement;
+
+      vPosition = pos;
+      
+      vec4 worldPos = modelMatrix * vec4(pos, 1.0);
       vWorldPosition = worldPos.xyz; // Pass global pos
 
       vec4 mvPosition = viewMatrix * worldPos;
@@ -41,14 +61,19 @@ const LoaderShaderMaterial = shaderMaterial(
     uniform vec2 uMouse;
     uniform float uHold;
     uniform float uHoldTime;
+    uniform float uShatter;
+    uniform float uGlowFull; // NEW
     
     varying vec2 vUv;
     varying vec3 vNormal;
     varying vec3 vPosition;
-    varying vec3 vWorldPosition; // NEW
+    varying vec3 vWorldPosition;
     varying vec3 vViewPosition;
 
     void main() {
+      // Discard if fully shattered to avoid artifacts
+      if (uShatter > 0.95) discard;
+
       // Normalization
       vec3 normal = normalize(vNormal);
       vec3 viewDir = normalize(vViewPosition);
@@ -134,7 +159,6 @@ const LoaderShaderMaterial = shaderMaterial(
       vec3 base = mix(uColorStart, uColorEnd, fresnel);
 
       // 2. Apply Interaction States
-      // 2. Apply Interaction States
       
       // 2. Apply Interaction States
       if (isHolding > 0.5) {
@@ -172,7 +196,6 @@ const LoaderShaderMaterial = shaderMaterial(
 
       // Add Mouse Glow
       base += vec3(0.1) * mouseGlow;
-
 
 
       // F. Final Effect: Golden Holographic Ascent (Palette Match + Animation)
@@ -215,7 +238,19 @@ const LoaderShaderMaterial = shaderMaterial(
       // Mix from current Base (Scan) to Final Look based on timer
       base = mix(base, finalLook, finalEffect);
 
-      gl_FragColor = vec4(base, 1.0);
+      // --- FULL GLOW OVERRIDE (Before Shatter) ---
+      if (uGlowFull > 0.0) {
+           // Create a super bright, solid glow color (e.g., pure light cream/white gold)
+           vec3 solidGlow = uColorStart * 1.5; 
+           
+           // Mix based on uGlowFull (0 -> 1)
+           base = mix(base, solidGlow, uGlowFull);
+      }
+
+      // Fade out on shatter
+      base *= (1.0 - uShatter);
+
+      gl_FragColor = vec4(base, 1.0 - uShatter); // Fade alpha too
     }
   `
 );
