@@ -4,8 +4,8 @@ import * as THREE from 'three'
 import React, { useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
-// import { GrassGround } from './shaders/GrassShaderMaterial';
-// import { WaterPool } from './shaders/WaterShaderMaterial';
+import { useFrame, ThreeElements } from '@react-three/fiber'
+import './shaders/GlassBuildingShaderMaterial'
 
 // const GRASS_POSITION: [number, number, number] = [-3.78, 0.014, 4.42];
 
@@ -20,6 +20,13 @@ type GLTFResult = GLTF & {
 
 export function Penthouse(props: any) {
   const { nodes, materials } = useGLTF('/models/penthouse.glb') as unknown as GLTFResult
+  const glassMatRef = useRef<any>(null)
+
+  useFrame((state) => {
+    if (glassMatRef.current) {
+      glassMatRef.current.uTime = state.clock.elapsedTime
+    }
+  })
 
 
   return (
@@ -606,24 +613,7 @@ export function Penthouse(props: any) {
         geometry={nodes.building_bottom.geometry}
         position={[0.553, 0.755, 0]}
       >
-        <meshStandardMaterial
-          color="#333333"
-          roughness={0.7}
-          onBeforeCompile={(shader) => {
-            shader.vertexShader = `varying vec3 vWorldPosition;\n${shader.vertexShader}`.replace(
-              '#include <worldpos_vertex>',
-              `#include <worldpos_vertex>\n vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;`
-            );
-            shader.fragmentShader = `varying vec3 vWorldPosition;\n${shader.fragmentShader}`.replace(
-              '#include <dithering_fragment>',
-              `#include <dithering_fragment>\n 
-               float floorH = 3.5;\n
-               float lineT = 0.05;\n
-               float pattern = smoothstep(1.0 - lineT, 1.0, fract(vWorldPosition.y / floorH));\n
-               gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.0), pattern);\n`
-            );
-          }}
-        />
+        <glassBuildingShaderMaterial ref={glassMatRef} transparent />
       </mesh>
     </group>
   )

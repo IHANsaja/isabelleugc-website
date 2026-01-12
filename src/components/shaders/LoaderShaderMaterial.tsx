@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { shaderMaterial } from "@react-three/drei";
-import { extend, ReactThreeFiber } from "@react-three/fiber";
+import { extend } from "@react-three/fiber";
 
 const LoaderShaderMaterial = shaderMaterial(
   {
@@ -272,12 +272,6 @@ const LoaderShaderMaterial = shaderMaterial(
 
 extend({ LoaderShaderMaterial });
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      loaderShaderMaterial: ReactThreeFiber.Object3DNode<THREE.ShaderMaterial, typeof LoaderShaderMaterial>;
-    }
-  }
-}
+
 
 export { LoaderShaderMaterial };
