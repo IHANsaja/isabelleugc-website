@@ -49,37 +49,37 @@ export function SceneModel(props: ThreeElements['group']) {
             const geometry = nodes.tv_screen_1_screen.geometry;
             geometry.computeBoundingBox();
             const bbox = geometry.boundingBox;
-            if(bbox) {
+            if (bbox) {
                 const size = new THREE.Vector3();
                 bbox.getSize(size);
-                
+
                 // Determine dominant axes for planar projection
                 const axes = [
                     { idx: 0, size: size.x },
                     { idx: 1, size: size.y },
                     { idx: 2, size: size.z }
                 ].sort((a, b) => b.size - a.size);
-                
+
                 const uAxis = axes[0].idx;
                 const vAxis = axes[1].idx;
-                
+
                 const minU = uAxis === 0 ? bbox.min.x : uAxis === 1 ? bbox.min.y : bbox.min.z;
                 const rangeU = uAxis === 0 ? size.x : uAxis === 1 ? size.y : size.z;
-                
+
                 const minV = vAxis === 0 ? bbox.min.x : vAxis === 1 ? bbox.min.y : bbox.min.z;
                 const rangeV = vAxis === 0 ? size.x : vAxis === 1 ? size.y : size.z;
 
                 const posAttribute = geometry.attributes.position;
                 const uvs = new Float32Array(posAttribute.count * 2);
 
-                for(let i=0; i<posAttribute.count; i++) {
+                for (let i = 0; i < posAttribute.count; i++) {
                     const uVal = posAttribute.getComponent(i, uAxis);
                     const vVal = posAttribute.getComponent(i, vAxis);
-                    
-                    uvs[i*2] = (uVal - minU) / rangeU;
-                    uvs[i*2+1] = (vVal - minV) / rangeV;
+
+                    uvs[i * 2] = (uVal - minU) / rangeU;
+                    uvs[i * 2 + 1] = (vVal - minV) / rangeV;
                 }
-                
+
                 geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
                 geometry.attributes.uv.needsUpdate = true;
 
@@ -117,7 +117,7 @@ export function SceneModel(props: ThreeElements['group']) {
     React.useEffect(() => {
         if (audioRef.current && videoTexture.image instanceof HTMLVideoElement) {
             const video = videoTexture.image as any
-            
+
             // Check if source already exists on the video element
             if (!video._audioSource) {
                 try {
@@ -742,9 +742,9 @@ export function SceneModel(props: ThreeElements['group']) {
                     geometry={nodes.tv_screen_1_screen.geometry}
                     material={materials['mirror.nocompress']}
                 >
-                    <meshBasicMaterial 
-                        map={videoTexture} 
-                        toneMapped={true} 
+                    <meshBasicMaterial
+                        map={videoTexture}
+                        toneMapped={true}
                     />
                     <positionalAudio ref={audioRef} args={[listener]} position={audioPos} />
                 </mesh>
