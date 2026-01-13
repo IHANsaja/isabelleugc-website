@@ -45,8 +45,8 @@ export function SceneModel(props: ThreeElements['group']) {
     const [audioPos, setAudioPos] = React.useState<[number, number, number]>([0, 0, 0])
 
     React.useLayoutEffect(() => {
-        if (nodes.tv_screen_1_screen && nodes.tv_screen_1_screen.geometry) {
-            const geometry = nodes.tv_screen_1_screen.geometry;
+        if (nodes.tv_screen_screen && nodes.tv_screen_screen.geometry) {
+            const geometry = nodes.tv_screen_screen.geometry;
             geometry.computeBoundingBox();
             const bbox = geometry.boundingBox;
             if (bbox) {
@@ -223,7 +223,7 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_18.geometry}
-                    material={materials['Antique Old Style Sofa Cushion Fabric']}
+                    material={nodes.Object_18.material}
                 />
                 <mesh
                     castShadow
@@ -571,6 +571,7 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_73.geometry}
+                    material={materials['pack_003_salon_television___material__83']}
                 />
                 <mesh
                     castShadow
@@ -734,12 +735,12 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.tv_screen_1.geometry}
-                    material={materials['pack_003_salon_television___material__83']}
+                    material={materials['mirror.nocompress']}
                 />
                 <mesh
                     castShadow
                     receiveShadow
-                    geometry={nodes.tv_screen_1_screen.geometry}
+                    geometry={nodes.tv_screen_screen.geometry}
                     material={materials['mirror.nocompress']}
                 >
                     <meshBasicMaterial
