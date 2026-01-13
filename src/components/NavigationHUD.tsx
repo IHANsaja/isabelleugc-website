@@ -6,9 +6,10 @@ import { useGSAP } from "@gsap/react";
 
 interface NavigationHUDProps {
     isVisible: boolean;
+    isLookingAtTV?: boolean;
 }
 
-const NavigationHUD: React.FC<NavigationHUDProps> = ({ isVisible }) => {
+const NavigationHUD: React.FC<NavigationHUDProps> = ({ isVisible, isLookingAtTV = false }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [shouldRender, setShouldRender] = useState(isVisible);
 
@@ -74,11 +75,23 @@ const NavigationHUD: React.FC<NavigationHUDProps> = ({ isVisible }) => {
                     {/* Vertical line */}
                     <div className="absolute left-1/2 top-0 w-[1px] h-full bg-white/50 -translate-x-1/2"></div>
                     {/* Center dot */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-white/80"></div>
+                    <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full transition-colors duration-200 ${isLookingAtTV ? 'bg-sec-gold' : 'bg-white/80'}`}></div>
                     {/* Outer ring */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-full border border-white/30"></div>
+                    <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-full border transition-colors duration-200 ${isLookingAtTV ? 'border-sec-gold/60' : 'border-white/30'}`}></div>
                 </div>
             </div>
+
+            {/* TV Interaction Prompt - shows when looking at TV */}
+            {isLookingAtTV && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-8 flex items-center gap-3 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-sec-gold/30">
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-5 h-5 rounded bg-sec-gold/20 border border-sec-gold/40 flex items-center justify-center text-sec-gold text-[10px] font-bold">E</div>
+                        <span className="text-sec-gold/60 font-instrument-sans text-[10px]">/</span>
+                        <div className="w-5 h-5 rounded bg-sec-gold/20 border border-sec-gold/40 flex items-center justify-center text-sec-gold text-[8px] font-bold">LMB</div>
+                    </div>
+                    <span className="text-sec-gold/80 font-instrument-sans text-[10px] uppercase tracking-wider">Interact</span>
+                </div>
+            )}
 
             {/* Bottom Center - Exit Hint */}
             <div className="nav-hud-element absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">

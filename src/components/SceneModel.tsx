@@ -10,6 +10,7 @@ import './shaders/CityShaderMaterial' // Register the custom shader material
 import './shaders/CityGroundShaderMaterial' // Register the custom ground shader material
 import './shaders/CloudShaderMaterial' // Register the custom cloud shader material
 import { WaterPool } from './shaders/WaterShaderMaterial'
+import { useTVInteraction } from '@/context/TVInteractionContext'
 
 type GLTFResult = GLTF & {
     nodes: {
@@ -26,6 +27,11 @@ export function SceneModel(props: ThreeElements['group']) {
     // Animation refs for shaders
     const cloudMat = useRef<any>(null);
     const groundMat = useRef<any>(null);
+    const tvScreenRef = useRef<THREE.Mesh>(null);
+    const raycaster = useRef(new THREE.Raycaster());
+    
+    // TV Interaction context
+    const { setIsLookingAtTV, setVideoElement } = useTVInteraction();
 
     React.useEffect(() => {
         // useFrame is not available inside the component body directly usually if not careful? 
@@ -39,6 +45,13 @@ export function SceneModel(props: ThreeElements['group']) {
         if (groundMat.current) {
             // Updated ground shader also has uTime
             groundMat.current.uTime = state.clock.elapsedTime;
+        }
+        
+        // TV Raycasting detection
+        if (tvScreenRef.current) {
+            raycaster.current.setFromCamera(new THREE.Vector2(0, 0), state.camera);
+            const intersects = raycaster.current.intersectObject(tvScreenRef.current);
+            setIsLookingAtTV(intersects.length > 0 && intersects[0].distance < 8);
         }
     });
 
@@ -137,6 +150,14 @@ export function SceneModel(props: ThreeElements['group']) {
             }
         }
     }, [videoTexture])
+
+    // Expose video element to context
+    React.useEffect(() => {
+        if (videoTexture.image instanceof HTMLVideoElement) {
+            setVideoElement(videoTexture.image);
+        }
+        return () => setVideoElement(null);
+    }, [videoTexture, setVideoElement]);
 
     return (
         <group {...props} dispose={null}>
@@ -738,6 +759,7 @@ export function SceneModel(props: ThreeElements['group']) {
                     material={materials['mirror.nocompress']}
                 />
                 <mesh
+                    ref={tvScreenRef}
                     castShadow
                     receiveShadow
                     geometry={nodes.tv_screen_screen.geometry}
