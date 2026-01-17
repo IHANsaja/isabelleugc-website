@@ -167,7 +167,7 @@ export function SceneModel(props: ThreeElements['group']) {
                 <cloudShaderMaterial ref={cloudMat} transparent depthWrite={false} side={THREE.DoubleSide} />
             </mesh>
 
-            <RigidBody type="fixed" colliders="trimesh" position={[0, -23.641, 0]}>
+            <RigidBody type="fixed" colliders="trimesh">
                 <mesh
                     castShadow
                     receiveShadow
@@ -183,7 +183,7 @@ export function SceneModel(props: ThreeElements['group']) {
                     <cityShaderMaterial />
                 </mesh>
             </RigidBody>
-            <group position={[8.047, 0.288, -2.653]}>
+            <group>
                 <RigidBody type="fixed" colliders="trimesh">
                     <mesh
                         castShadow
@@ -244,7 +244,7 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_18.geometry}
-                    material={nodes.Object_18.material}
+                    material={materials['Fabric 3']}
                 />
                 <mesh
                     castShadow
@@ -256,7 +256,7 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_2.geometry}
-                    material={materials.armoire_002___mirror_miroir}
+                    material={materials['Laminated Wood']}
                 />
                 <mesh
                     castShadow
@@ -306,17 +306,13 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_27.geometry}
-                    material={
-                        materials.cuisine_meuble_haut_001____cuisine_meuble_haut_001_cuisine_meuble_haut_001_cuisine_meuble_haut_001verni
-                    }
+                    material={materials['Laminated Wood']}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_28.geometry}
-                    material={
-                        materials.cuisine_meuble_haut_002____cuisine_meuble_haut_002_cuisine_meuble_haut_002_cuisine_meuble_haut_002verni
-                    }
+                    material={materials['Laminated Wood']}
                 />
                 <mesh
                     castShadow
@@ -400,19 +396,19 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_41.geometry}
-                    material={materials.fake_mat_107_107_107_255}
+                    material={materials['Material.001']}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_42.geometry}
-                    material={materials.fake_mat_142_142_142_255}
+                    material={materials['Procedural Wood']}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_43.geometry}
-                    material={materials.fake_mat_149_149_149_255}
+                    material={materials.metal2}
                 />
                 <mesh
                     castShadow
@@ -442,7 +438,31 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_48.geometry}
-                    material={materials.fake_mat_254_254_254_255}
+                    material={materials.Material}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_48001.geometry}
+                    material={materials.deer_head}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_48002.geometry}
+                    material={materials.light}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_48003.geometry}
+                    material={materials['Marble Ceramic']}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_48004.geometry}
+                    material={materials['Marble Ceramic']}
                 />
                 <mesh
                     castShadow
@@ -460,7 +480,7 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_50.geometry}
-                    material={materials.fauteuil_017___mat_tissus057_2sg}
+                    material={materials['Procedural Wood']}
                 />
                 <mesh
                     castShadow
@@ -490,7 +510,25 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_56.geometry}
-                    material={materials.gris_001}
+                    material={materials.metal2}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_56001.geometry}
+                    material={materials.metal2}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_56002.geometry}
+                    material={materials.metal2}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_56003.geometry}
+                    material={materials.metal2}
                 />
                 <mesh
                     castShadow
@@ -520,19 +558,19 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_61.geometry}
-                    material={materials.lavabo_006___mat_blanc1sg}
+                    material={materials['Calacatta Quartz Stone Marble']}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_62.geometry}
-                    material={materials.lavabo_006___mat_blanc2sg}
+                    material={materials['Procedural Wood']}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_63.geometry}
-                    material={materials.lavabo_006___mat_blanc3sg}
+                    material={materials['Procedural Wood']}
                 />
                 <mesh
                     castShadow
@@ -544,7 +582,7 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_65.geometry}
-                    material={materials.lave_mains_001___lave_mains_001_blinn1sg}
+                    material={materials['Calacatta Quartz Stone Marble']}
                 />
                 <mesh
                     castShadow
@@ -556,7 +594,7 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_67.geometry}
-                    material={materials.marbre_004_ovcol737373colpic12contpic11}
+                    material={materials['Calacatta Quartz Stone Marble']}
                 />
                 <mesh
                     castShadow
@@ -592,7 +630,7 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_73.geometry}
-                    material={materials['pack_003_salon_television___material__83']}
+                    material={materials.pack_003_salon_television___material__83}
                 />
                 <mesh
                     castShadow
@@ -622,13 +660,49 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_8.geometry}
-                    material={materials.blanc_001}
+                    material={materials['Laminated Wood']}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_8001.geometry}
+                    material={materials.flower_pot}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_8002.geometry}
+                    material={materials.flower_pot}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_8003.geometry}
+                    material={materials['Plaster wall']}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_8004.geometry}
+                    material={materials['Plaster wall']}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_8005.geometry}
+                    material={materials['Calacatta Quartz Stone Marble']}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_8006.geometry}
+                    material={materials['Material.002']}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_80.geometry}
-                    material={materials.porte_serviette_005___metal}
+                    material={materials.metal2}
                 />
                 <mesh
                     castShadow
@@ -716,7 +790,7 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_94.geometry}
-                    material={materials.wc_005____base}
+                    material={materials['Calacatta Quartz Stone Marble']}
                 />
                 <mesh
                     castShadow
@@ -759,6 +833,12 @@ export function SceneModel(props: ThreeElements['group']) {
                     material={materials['mirror.nocompress']}
                 />
                 <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.tv_screen_2.geometry}
+                    material={materials['mirror.nocompress']}
+                />
+                <mesh
                     ref={tvScreenRef}
                     castShadow
                     receiveShadow
@@ -771,18 +851,12 @@ export function SceneModel(props: ThreeElements['group']) {
                     />
                     <positionalAudio ref={audioRef} args={[listener]} position={audioPos} />
                 </mesh>
-                <mesh
-                    castShadow
-                    receiveShadow
-                    geometry={nodes.tv_screen_2.geometry}
-                    material={materials['mirror.nocompress']}
-                />
                 <RigidBody type="fixed" colliders="trimesh">
                     <mesh
                         castShadow
                         receiveShadow
                         geometry={nodes.walls.geometry}
-                        material={materials.blanc_001_Wall_Entity_Material}
+                        material={materials['Dirty Plaster']}
                     />
                 </RigidBody>
             </group>
@@ -792,7 +866,6 @@ export function SceneModel(props: ThreeElements['group']) {
                     receiveShadow
                     geometry={nodes.building_bottom.geometry}
                     material={nodes.building_bottom.material}
-                    position={[1.698, 1.043, -2.653]}
                 />
             </RigidBody>
             <RigidBody type="fixed" colliders="trimesh">
@@ -801,7 +874,6 @@ export function SceneModel(props: ThreeElements['group']) {
                     castShadow
                     receiveShadow
                     geometry={nodes.city_ground.geometry}
-                    position={[0, -23.641, 0]}
                     ref={groundMat} // groundMat ref used for rotation logic?? No, for updating shader uniforms.
                 >
                     <cityGroundShaderMaterial ref={groundMat} />
