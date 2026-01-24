@@ -28,18 +28,12 @@ const Header: React.FC = () => {
 
           {/* Logo on the left */}
           <div className="flex items-center cursor-pointer" role="button">
-            {/* Wrapper needed for 3D perspective.
-              The 'perspective' class is crucial for rotationY to work.
-            */}
-            <div className="perspective">
               <img
                 ref={logoRef}
                 src="/assets/images/logo.png"
                 alt="imagegang logo"
-                // Adding transform-style to preserve 3D for better rendering
-                className="w-16 h-16 bg-white rounded-full shadow-lg transform-style-preserve-3d"
+                className="w-16 h-16 bg-white rounded-full shadow-lg"
               />
-            </div>
           </div>
 
           {/* Menu button on the right */}

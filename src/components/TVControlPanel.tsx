@@ -48,6 +48,7 @@ const TVControlPanel: React.FC<TVControlPanelProps> = ({ isVisible }) => {
         videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
         videoElement.addEventListener('play', handlePlay);
         videoElement.addEventListener('pause', handlePause);
+        videoElement.addEventListener('volumechange', () => setIsMuted(videoElement.muted)); // Sync mute UI
 
         // Initial sync
         setIsPlaying(!videoElement.paused);
@@ -60,6 +61,7 @@ const TVControlPanel: React.FC<TVControlPanelProps> = ({ isVisible }) => {
             videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
             videoElement.removeEventListener('play', handlePlay);
             videoElement.removeEventListener('pause', handlePause);
+            videoElement.removeEventListener('volumechange', () => setIsMuted(videoElement.muted));
         };
     }, [videoElement]);
 

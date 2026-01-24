@@ -5,6 +5,8 @@ import { Canvas } from "@react-three/fiber";
 import { KeyboardControls } from "@react-three/drei";
 import { Suspense, useEffect, useState } from "react";
 import ExperienceOverlay from "@/components/ExperienceOverlay";
+import ExperienceTransitionLoader from "@/components/ExperienceTransitionLoader";
+import { useProgress } from "@react-three/drei";
 import NavigationHUD from "@/components/NavigationHUD";
 import TVControlPanel from "@/components/TVControlPanel";
 import MobileJoystick from "@/components/MobileJoystick";
@@ -13,6 +15,7 @@ import MobileLookControls from "@/components/MobileLookControls";
 import { stopAllAudio } from "@/utils/audioManager";
 import { TVInteractionProvider, useTVInteraction } from "@/context/TVInteractionContext";
 import { MobileControlsProvider, useMobileControls } from "@/context/MobileControlsContext";
+import { useSound } from "@/context/SoundContext";
 
 import { ExperienceScene } from "@/components/ExperienceScene";
 
@@ -139,6 +142,22 @@ export default function ExperiencePage() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [router]);
 
+    // Asset Loading State
+    const { progress } = useProgress();
+    const [isSceneReady, setIsSceneReady] = useState(false);
+    const [showLoader, setShowLoader] = useState(true);
+
+    const { isSoundEnabled } = useSound();
+
+    // Track when loading is finished
+    useEffect(() => {
+        if (progress === 100) {
+            // Small buffer to ensure render and prevent flickering
+            const timer = setTimeout(() => setIsSceneReady(true), 500);
+            return () => clearTimeout(timer);
+        }
+    }, [progress]);
+
     // Handle lock with cooldown to prevent double-click freeze
     const handleLock = () => {
         if (!canLock) return;
@@ -182,6 +201,7 @@ export default function ExperiencePage() {
                                     onLock={handleLock}
                                     onUnlock={handleUnlock}
                                     isMobile={isMobileDevice}
+                                    isSoundEnabled={isSoundEnabled}
                                 />
                             </Suspense>
                         </Canvas>
@@ -217,6 +237,15 @@ export default function ExperiencePage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
+                        )}
+
+                        {/* Loading Transition Overlay (Persistent from Home) */}
+                        {showLoader && (
+                            <ExperienceTransitionLoader 
+                                initialState="visible" 
+                                isFinished={isSceneReady}
+                                onComplete={() => setShowLoader(false)}
+                            />
                         )}
                     </div>
                 </KeyboardControls>

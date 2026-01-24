@@ -165,18 +165,43 @@ interface ExperienceSceneProps {
     onLock: () => void;
     onUnlock: () => void;
     isMobile?: boolean;
+    isSoundEnabled: boolean;
 }
 
-export const ExperienceScene = ({ onLock, onUnlock, isMobile = false }: ExperienceSceneProps) => {
+import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
+
+export const ExperienceScene = ({ onLock, onUnlock, isMobile = false, isSoundEnabled }: ExperienceSceneProps) => {
     return (
         <>
+            {/* Sunset Atmosphere */}
+            <color attach="background" args={['#1a1010']} />
+            <fogExp2 attach="fog" args={['#1a1010', 0.02]} />
+
+            {/* Warm Key Light (Sun) */}
             <directionalLight 
-                position={[10, 10, 5]} 
-                intensity={1} 
+                position={[-5, 5, -5]} 
+                intensity={4} 
+                color="#ffb74d"
                 castShadow={!isMobile}
-                shadow-mapSize={isMobile ? [512, 512] : [2048, 2048]}
+                shadow-bias={-0.0001}
+                shadow-mapSize={isMobile ? [1024, 1024] : [2048, 2048]}
             />
-            <Environment files="/hdr/skybox.hdr" background />
+
+            {/* Fill Light (Skylight) */}
+            <hemisphereLight args={['#ffad5e', '#3a243b', 1]} />
+
+            <Environment preset="sunset" background={false} blur={0.5} />
+
+            {/* Post Processing "Render View" Look */}
+            <EffectComposer disableNormalPass>
+                <Bloom 
+                    luminanceThreshold={1} 
+                    mipmapBlur 
+                    intensity={1.5} 
+                    radius={0.4}
+                />
+                <Vignette offset={0.3} darkness={0.7} />
+            </EffectComposer>
 
             {/* Camera starts at human eye level */}
             <PerspectiveCamera makeDefault position={[0, 1.6, 0]} />
@@ -197,7 +222,7 @@ export const ExperienceScene = ({ onLock, onUnlock, isMobile = false }: Experien
             >
                 <Player />
                 <group scale={[1, 1, 1]} position={[0, 0, 0]}>
-                    <SceneModel />
+                    <SceneModel isSoundEnabled={isSoundEnabled} />
                 </group>
             </Physics>
         </>

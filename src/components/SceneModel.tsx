@@ -21,7 +21,7 @@ type GLTFResult = GLTF & {
     }
 }
 
-export function SceneModel(props: ThreeElements['group']) {
+export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boolean }) {
     const { nodes, materials } = useGLTF('/models/scene.glb') as unknown as GLTFResult
 
     // Animation refs for shaders
@@ -151,13 +151,14 @@ export function SceneModel(props: ThreeElements['group']) {
         }
     }, [videoTexture])
 
-    // Expose video element to context
+    // Expose video element to context and sync mute state
     React.useEffect(() => {
         if (videoTexture.image instanceof HTMLVideoElement) {
             setVideoElement(videoTexture.image);
+            videoTexture.image.muted = !props.isSoundEnabled;
         }
         return () => setVideoElement(null);
-    }, [videoTexture, setVideoElement]);
+    }, [videoTexture, setVideoElement, props.isSoundEnabled]);
 
     return (
         <group {...props} dispose={null}>

@@ -9,6 +9,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { useRouter } from "next/navigation";
+import ExperienceTransitionLoader from "./ExperienceTransitionLoader";
 
 
 // Register ScrollTrigger
@@ -38,10 +39,8 @@ const CAMERA_PATH_CONFIG = {
 };
 
 // Animated wrapper component for the Penthouse
-const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => void }) => {
+const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => void, onLoadingStart: () => void }) => {
     const groupRef = useRef<THREE.Group>(null);
-    const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
     const { camera } = useThree(); // Access the camera
 
     // --- CAMERA CONTROLS (Static Config) ---
@@ -91,11 +90,8 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
                         });
                     }
 
-                    if (self.progress > 0.95 && !isLoading) {
-                        setIsLoading(true);
-                        setTimeout(() => {
-                            router.push("/experience");
-                        }, 500);
+                    if (self.progress > 0.9) {
+                        props.onLoadingStart();
                     }
                 },
             },
@@ -182,33 +178,29 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
             }
         }
 
-    }, [isLoading, router, camera]); // Removed controls from dependency
+    }, [camera]); // Removed controls from dependency
 
     return (
-        <>
-            <group ref={groupRef} position={props.position} scale={props.scale}>
-                <Penthouse />
-            </group>
-            {isLoading && (
-                <mesh position={[0, 0, 10]}>
-                    <planeGeometry args={[100, 100]} />
-                    <meshBasicMaterial color="black" transparent opacity={0} ref={(ref) => {
-                        if (ref) {
-                            gsap.to(ref, { opacity: 1, duration: 0.5 });
-                        }
-                    }} />
-                </mesh>
-            )}
-        </>
+        <group ref={groupRef} position={props.position} scale={props.scale}>
+            <Penthouse />
+        </group>
     );
 };
 
 const PenthouseWrapper = () => {
     const [showDebug, setShowDebug] = useState(false);
     const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
 
     const handleDebugUpdate = (info: DebugInfo) => {
         setDebugInfo(info);
+    };
+
+    const handleLoadingStart = () => {
+        if (!isLoading) {
+            setIsLoading(true);
+        }
     };
 
     return (
@@ -289,12 +281,21 @@ const PenthouseWrapper = () => {
                             position={[0, 5, 0]}
                             scale={[0.3, 0.3, 0.3]}
                             onDebugUpdate={handleDebugUpdate}
+                            onLoadingStart={handleLoadingStart}
                         />
                     </Suspense>
                 </Canvas>
             </div>
 
             <ScrollFadeLogic />
+
+            {isLoading && (
+                 <ExperienceTransitionLoader 
+                     onComplete={() => {
+                         router.push("/experience");
+                     }} 
+                 />
+            )}
         </div>
     );
 };
