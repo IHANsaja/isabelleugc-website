@@ -164,7 +164,7 @@ export default function AboutPage() {
                 {/* 3. Custom Floating Cursor - FIXED */}
                 <div 
                     className="view-cursor fixed top-0 left-0 z-50 pointer-events-none opacity-0 scale-0"
-                    style={{ xPercent: -50, yPercent: -50 }}
+                    style={{ transform: "translate(-50%, -50%)" }}
                 >
                     <div className="relative w-32 h-32 md:w-32 md:h-32">
                          <div className="absolute inset-0 rounded-full border border-[#F6F3E8]/30 animate-[spin_10s_linear_infinite]"></div>
