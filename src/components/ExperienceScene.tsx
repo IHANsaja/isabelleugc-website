@@ -193,7 +193,7 @@ export const ExperienceScene = ({ onLock, onUnlock, isMobile = false, isSoundEna
             <Environment preset="sunset" background={false} blur={0.5} />
 
             {/* Post Processing "Render View" Look */}
-            <EffectComposer disableNormalPass>
+            <EffectComposer enableNormalPass={false}>
                 <Bloom 
                     luminanceThreshold={1} 
                     mipmapBlur 
