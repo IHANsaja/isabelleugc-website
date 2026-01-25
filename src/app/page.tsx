@@ -1,5 +1,5 @@
 import Header from "@/components/Header";
-import PenthouseWrapper from "@/components/PentHouseWrapper";
+import PenthouseWithRoofWrapper from "@/components/PentHouseWithRoofWrapper";
 import ScrollIndicator from "@/components/ScrollIndicator";
 import { Scroll } from "@react-three/drei";
 import HudOverlay from "@/components/HudOverlay";
@@ -21,7 +21,7 @@ export default function Home() {
         </div>
       </div>
 
-      <PenthouseWrapper />
+      <PenthouseWithRoofWrapper />
       <HudOverlay />
       <ScrollIndicator />
     </div>

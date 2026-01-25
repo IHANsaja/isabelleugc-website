@@ -3,7 +3,7 @@
 import { Suspense, useRef, useEffect, useState } from "react";
 import { Penthouse } from "./PentHouse";
 import { Canvas, useThree } from "@react-three/fiber";
-import { Environment, OrbitControls, PerspectiveCamera, useProgress } from "@react-three/drei";
+import { Environment, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -46,22 +46,6 @@ const AnimatedPenthouse = (props: any & { onLoadingStart: () => void }) => {
                 end: "bottom bottom",
                 scrub: 1.5,
                 onUpdate: (self) => {
-                    const progress = self.progress;
-                    let phase = "Phase 1: Moving Left";
-                    // Timeline Total: 9s (3 + 3 + 3)
-                    // P1: 0-3s (0 - 0.33)
-                    // P2: 3-6s (0.33 - 0.66)
-                    // P3: 6-9s (0.66 - 1.0)
-
-                    if (progress > 0.33 && progress <= 0.66) {
-                        phase = "Phase 2: Center Approach";
-                    } else if (progress > 0.66) {
-                        phase = "Phase 3: Final Turn & Stop";
-                    }
-
-                    // Update Leva - REMOVED
-                    // set({ currentPhase: phase });
-
                     if (self.progress > 0.9) {
                         props.onLoadingStart();
                     }
@@ -130,25 +114,7 @@ const AnimatedPenthouse = (props: any & { onLoadingStart: () => void }) => {
         }, 6);
 
 
-        // Door Animation (Aligned to timeline)
-        if (groupRef.current) {
-            const leftDoor = groupRef.current.getObjectByName("penthouse_door_left");
-            const rightDoor = groupRef.current.getObjectByName("penthouse_door_right");
 
-            if (leftDoor && rightDoor) {
-                tl.to(leftDoor.rotation, {
-                    y: -Math.PI / 2,
-                    duration: 3,
-                    ease: "power1.inOut",
-                }, 2); // Open during Phase 3
-
-                tl.to(rightDoor.rotation, {
-                    y: Math.PI / 2,
-                    duration: 3,
-                    ease: "power1.inOut",
-                }, 2);
-            }
-        }
 
     }, [camera]); // Removed controls from dependency
 

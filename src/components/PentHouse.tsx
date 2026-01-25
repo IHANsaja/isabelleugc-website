@@ -5,8 +5,6 @@ import React from 'react'
 import { useGLTF } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
 
-// const GRASS_POSITION: [number, number, number] = [-3.78, 0.014, 4.42];
-
 type GLTFResult = GLTF & {
   nodes: {
     [name: string]: THREE.Mesh
