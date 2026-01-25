@@ -8,12 +8,14 @@ interface ExperienceTransitionLoaderProps {
     onComplete?: () => void;
     initialState?: "hidden" | "visible";
     isFinished?: boolean;
+    progress?: number;
 }
 
 const ExperienceTransitionLoader: React.FC<ExperienceTransitionLoaderProps> = ({ 
     onComplete, 
     initialState = "hidden",
-    isFinished = false
+    isFinished = false,
+    progress = 0
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
@@ -21,6 +23,18 @@ const ExperienceTransitionLoader: React.FC<ExperienceTransitionLoaderProps> = ({
     const progressLineRef = useRef<HTMLDivElement>(null);
     const progressContainerRef = useRef<HTMLDivElement>(null);
     const statusItemsRef = useRef<HTMLDivElement>(null);
+    const progressTextRef = useRef<HTMLSpanElement>(null);
+
+    // Update progress bar width based on prop
+    useGSAP(() => {
+        if (progressLineRef.current) {
+            gsap.to(progressLineRef.current, {
+                width: `${progress}%`,
+                duration: 0.5,
+                ease: "power2.out"
+            });
+        }
+    }, [progress]);
 
     useGSAP(() => {
         const tl = gsap.timeline({
@@ -30,7 +44,7 @@ const ExperienceTransitionLoader: React.FC<ExperienceTransitionLoaderProps> = ({
         });
 
         if (initialState === "hidden") {
-            // ORIGINAL ENTRANCE ANIMATION
+            // ORIGINAL ENTRANCE ANIMATION (Landing Page)
             
             // 1. Container Fade In
             tl.to(containerRef.current, {
@@ -59,7 +73,7 @@ const ExperienceTransitionLoader: React.FC<ExperienceTransitionLoaderProps> = ({
                 "-=0.8"
             );
 
-            // 4. Progress Fill
+            // 4. Progress Fill - Fake for landing
             tl.to(progressLineRef.current, {
                 width: "100%",
                 duration: 2.5,
@@ -77,14 +91,14 @@ const ExperienceTransitionLoader: React.FC<ExperienceTransitionLoaderProps> = ({
             tl.to({}, { duration: 0.5 });
 
         } else {
-            // IMMEDIATE VISIBLE STATE (For Experience Page)
+            // VISIBLE STATE (For Experience Page - Real Loading)
             gsap.set(containerRef.current, { opacity: 1 });
             gsap.set([titleRef.current, subtitleRef.current], { y: 0, opacity: 1 });
             gsap.set(progressContainerRef.current, { scaleX: 1, opacity: 1 });
-            gsap.set(progressLineRef.current, { width: "100%" });
+            // Don't force width to 100% here, let the effect handle it via progress prop
             gsap.set(statusItemsRef.current?.children || [], { opacity: 1, y: 0 });
             
-            // Optional: Pulse animation to show it's still alive
+            // Optional: Pulse animation
             gsap.to(subtitleRef.current, { opacity: 0.3, duration: 1, yoyo: true, repeat: -1 });
         }
 
@@ -139,7 +153,7 @@ const ExperienceTransitionLoader: React.FC<ExperienceTransitionLoaderProps> = ({
                 <div className="w-full flex flex-col gap-2">
                     <div className="flex justify-between items-end px-1">
                         <span className="font-instrument-sans text-[9px] font-bold tracking-widest opacity-40">LOCALE: SHANGHAI</span>
-                        <span className="font-instrument-sans text-[9px] font-bold tracking-widest opacity-40">SYS: {initialState === "hidden" ? "ONLINE" : "READY"}</span>
+                        <span className="font-instrument-sans text-[9px] font-bold tracking-widest opacity-40">SYS: {initialState === "hidden" ? "ONLINE" : "LOADING"}</span>
                     </div>
                     
                     <div ref={progressContainerRef} className="w-full h-[1px] bg-[#231F20]/20 relative overflow-hidden origin-left">
@@ -154,7 +168,7 @@ const ExperienceTransitionLoader: React.FC<ExperienceTransitionLoaderProps> = ({
                 {/* Footer Status */}
                 <div ref={statusItemsRef} className="flex flex-col items-center gap-1 mt-8">
                     <span className="font-instrument-sans text-[9px] tracking-[0.2em] opacity-30 uppercase">
-                        Loading assets...
+                        Loading assets... {Math.round(progress)}%
                     </span>
                     <span className="font-instrument-sans text-[9px] tracking-[0.2em] opacity-30 uppercase">
                         Establishing connection...

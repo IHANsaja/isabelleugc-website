@@ -1,11 +1,9 @@
 "use client";
 
 import * as THREE from 'three'
-import React, { useRef } from 'react'
+import React from 'react'
 import { useGLTF } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
-import { useFrame, ThreeElements } from '@react-three/fiber'
-import './shaders/GlassBuildingShaderMaterial'
 
 // const GRASS_POSITION: [number, number, number] = [-3.78, 0.014, 4.42];
 
@@ -20,14 +18,6 @@ type GLTFResult = GLTF & {
 
 export function Penthouse(props: any) {
   const { nodes, materials } = useGLTF('/models/penthouse.glb') as unknown as GLTFResult
-  const glassMatRef = useRef<any>(null)
-
-  useFrame((state) => {
-    if (glassMatRef.current) {
-      glassMatRef.current.uTime = state.clock.elapsedTime
-    }
-  })
-
 
   return (
     <group {...props} dispose={null}>
@@ -611,10 +601,9 @@ export function Penthouse(props: any) {
         castShadow
         receiveShadow
         geometry={nodes.building_bottom.geometry}
+        material={nodes.building_bottom.material}
         position={[0.553, 0.755, 0]}
-      >
-        <glassBuildingShaderMaterial ref={glassMatRef} transparent />
-      </mesh>
+      />
     </group>
   )
 }

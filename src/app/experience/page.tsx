@@ -244,6 +244,7 @@ export default function ExperiencePage() {
                             <ExperienceTransitionLoader 
                                 initialState="visible" 
                                 isFinished={isSceneReady}
+                                progress={progress}
                                 onComplete={() => setShowLoader(false)}
                             />
                         )}

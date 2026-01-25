@@ -1,44 +1,44 @@
 "use client";
 
 import * as THREE from 'three';
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { shaderMaterial } from '@react-three/drei';
 import { extend, useFrame, ThreeElements } from '@react-three/fiber';
 
-// 1. Define the Shader Material
+// --- Premium Water Shader Material ---
 const WaterShaderMaterial = shaderMaterial(
     {
         uTime: 0,
-        uDeepColor: new THREE.Color("#0f242e"), // Deep, desaturated greenish-blue
-        uShallowColor: new THREE.Color("#4a7a8c"), // Muted, lighter teal-grey
-        uSkyColor: new THREE.Color("#dbe5eb"), // Soft, non-white sky reflection
-        uSunDirection: new THREE.Vector3(1.0, 0.4, 0.5).normalize(),
+        uDeepColor: new THREE.Color("#001e36"), // Deep oceanic blue
+        uShallowColor: new THREE.Color("#00d2ff"), // Bright tropical teal
+        uSkyColor: new THREE.Color("#ffffff"),
+        uPlayerPos: new THREE.Vector3(0, 0, 0),
+        uInteractionStrength: 0.05,
+        uCausticIntensity: 0.4,
+        uSunDirection: new THREE.Vector3(1.0, 1.0, 1.0).normalize(),
     },
     // Vertex Shader
     `
     uniform float uTime;
-    
-    varying vec3 vPos;
+    uniform vec3 uPlayerPos;
+    uniform float uInteractionStrength;
+
     varying vec3 vWorldPosition;
     varying vec3 vNormal;
     varying vec2 vUv;
     varying float vWaveHeight;
+    varying float vInteraction;
 
-    // Gerstner Wave Calculation for Physical Motion
-    // Returns (x, y, z) displacement
-    vec3 gerstnerWave(vec4 wave, vec3 p, inout vec3 tangent, inout vec3 binormal) {
-        float steepness = wave.z; // 0 to 1
+    // Gerstner Wave for realistic surface motion (Modified to accept time)
+    vec3 gerstner(vec4 wave, vec3 p, inout vec3 tangent, inout vec3 binormal, float time) {
+        float steepness = wave.z;
         float wavelength = wave.w;
         float k = 2.0 * 3.14159 / wavelength;
-        float c = sqrt(9.8 / k);
+        float c = sqrt(9.81 / k);
         vec2 d = normalize(wave.xy);
+        float f = k * (dot(d, p.xz) - c * time);
+        float a = steepness / k;
 
-        // Very slow time factor for "fluid motion"
-        float f = k * (dot(d, p.xz) - c * uTime * 0.05);
-        float a = steepness / k; // Amplitude
-
-        // Derivatives for normal calculation
-        float wa = k * a; // Maximum 1
         float s = sin(f);
         float c_w = cos(f);
 
@@ -61,62 +61,56 @@ const WaterShaderMaterial = shaderMaterial(
     }
 
     void main() {
-        vec3 gridPoint = position;
+        vec3 p = position;
         vec3 tangent = vec3(1.0, 0.0, 0.0);
         vec3 binormal = vec3(0.0, 0.0, 1.0);
-        vec3 p = gridPoint;
 
-        // Layered Waves:
-        // DirX, DirZ, Steepness, Wavelength
-        // 1. Swell (Large, slow)
-        vec4 waveA = vec4(1.0, 0.2, 0.02, 12.0); 
-        // 2. Medium detail (angled)
-        vec4 waveB = vec4(0.7, 0.7, 0.03, 5.0);
-        // 3. Small ripples (faster, steeper)
-        vec4 waveC = vec4(-0.2, 1.0, 0.04, 2.0);
+        // Layered Gerstner Waves (Calmer for a pool)
+        float timeScale = uTime * 0.5; 
+        
+        // Small, subtle ripples instead of ocean waves
+        // DirX, DirZ, Steepness (0..1), Wavelength
+        p += gerstner(vec4(1.0, 0.1, 0.02, 8.0), position, tangent, binormal, timeScale);
+        p += gerstner(vec4(0.1, 1.0, 0.03, 4.0), position, tangent, binormal, timeScale);
+        p += gerstner(vec4(1.1, 0.7, 0.02, 2.0), position, tangent, binormal, timeScale);
 
-        p += gerstnerWave(waveA, gridPoint, tangent, binormal);
-        p += gerstnerWave(waveB, gridPoint, tangent, binormal);
-        p += gerstnerWave(waveC, gridPoint, tangent, binormal);
+        // Interaction Ripples
+        float dist = distance(uPlayerPos.xz, (modelMatrix * vec4(position, 1.0)).xz);
+        float ripple = sin(dist * 10.0 - uTime * 5.0) * exp(-dist * 1.5);
+        p.y += ripple * uInteractionStrength;
+        vInteraction = ripple * exp(-dist * 0.5);
 
         vec3 normal = normalize(cross(binormal, tangent));
         vNormal = normal;
-        vPos = p;
         vWaveHeight = p.y;
         vUv = uv;
 
-        vec4 worldPosition = modelMatrix * vec4(p, 1.0);
-        vWorldPosition = worldPosition.xyz;
+        vec4 worldPos = modelMatrix * vec4(p, 1.0);
+        vWorldPosition = worldPos.xyz;
 
-        gl_Position = projectionMatrix * viewMatrix * worldPosition;
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
     }
     `,
     // Fragment Shader
     `
-    // Inputs
+    uniform float uTime;
     uniform vec3 uDeepColor;
     uniform vec3 uShallowColor;
     uniform vec3 uSkyColor;
     uniform vec3 uSunDirection;
-    uniform float uTime;
+    uniform float uCausticIntensity;
 
-    varying vec3 vPos;
     varying vec3 vWorldPosition;
     varying vec3 vNormal;
-    varying float vWaveHeight;
     varying vec2 vUv;
+    varying float vWaveHeight;
+    varying float vInteraction;
 
-    // Pseudo-random noise
-    float hash(vec2 p) {
-        return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
-    }
-
-    // Gradient Noise 3D for micro-surface detail
-    // (Inlined for performance)
+    // Simplex Noise for procedural detail
     vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
     vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-    vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
-    vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+    vec4 permute(vec4 x) { return mod289(((x * 34.0) + vec4(1.0)) * x); }
+    vec4 taylorInvSqrt(vec4 r) { return vec4(1.79284291400159) - vec4(0.85373472095314) * r; }
     float snoise(vec3 v) {
         const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
         const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
@@ -131,17 +125,17 @@ const WaterShaderMaterial = shaderMaterial(
         vec3 x3 = x0 - D.yyy;
         i = mod289(i);
         vec4 p = permute( permute( permute( 
-                  i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
-                + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
-                + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+                  vec4(i.z) + vec4(0.0, i1.z, i2.z, 1.0 ))
+                + vec4(i.y) + vec4(0.0, i1.y, i2.y, 1.0 )) 
+                + vec4(i.x) + vec4(0.0, i1.x, i2.x, 1.0 ));
         float n_ = 0.142857142857;
         vec3  ns = n_ * D.wyz - D.xzx;
-        vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
-        vec4 x_ = floor(j * ns.z);
-        vec4 y_ = floor(j - 7.0 * x_ );
-        vec4 x = x_ *ns.x + ns.yyyy;
-        vec4 y = y_ *ns.x + ns.yyyy;
-        vec4 h = 1.0 - abs(x) - abs(y);
+        vec4 j = p - vec4(49.0) * floor(p * vec4(ns.z * ns.z));
+        vec4 x_ = floor(j * vec4(ns.z));
+        vec4 y_ = floor(j - vec4(7.0) * x_ );
+        vec4 x = x_ * vec4(ns.x) + ns.yyyy;
+        vec4 y = y_ * vec4(ns.x) + ns.yyyy;
+        vec4 h = vec4(1.0) - abs(x) - abs(y);
         vec4 b0 = vec4( x.xy, y.xy );
         vec4 b1 = vec4( x.zw, y.zw );
         vec4 s0 = floor(b0)*2.0 + 1.0;
@@ -163,121 +157,72 @@ const WaterShaderMaterial = shaderMaterial(
     void main() {
         vec3 viewDir = normalize(cameraPosition - vWorldPosition);
         
-        // --- 1. Normal Perturbation ---
-        // Combine low-res geometric normal (Gerstner) with high-res procedural noise
-        // This simulates micro-ripples without high poly count
-        float noiseScale = 5.0;
-        float noiseSpeed = 0.1;
-        
-        // Two layers of noise moving in opposite directions
-        float n1 = snoise(vec3(vWorldPosition.xz * noiseScale + uTime * noiseSpeed, uTime * 0.1));
-        float n2 = snoise(vec3(vWorldPosition.xz * noiseScale * 2.0 - uTime * noiseSpeed, uTime * 0.1));
-        
-        // Perturb the geometric normal
-        vec3 normal = normalize(vNormal + vec3(n1 + n2) * 0.08); // Keep perturbation subtle (0.08)
+        // 1. Procedural Normals (Micro-ripples)
+        float noise = snoise(vec3(vWorldPosition.xz * 4.0 + vec2(uTime * 0.2), uTime * 0.1));
+        vec3 normal = normalize(vNormal + vec3(noise * 0.1));
 
-        // --- 2. Color Mixing (Absorption) ---
-        // Base absorption: darker when looking straight down (normal facing view), 
-        // lighter at glancing angles (more light scattering path).
-        // Also use wave height for subtle "SSS" feel in peaks.
-        float facing = dot(viewDir, normal); // 1.0 = looking straight down, 0.0 = glancing
-        
-        // Interpolate between deep and shallow based on facing ratio + wave height variability
-        float mixFactor = smoothstep(0.2, 1.0, facing); 
-        vec3 baseColor = mix(uShallowColor, uDeepColor, mixFactor);
-        
-        // Add subtle variation from wave height (tips are lighter aka SSS)
-        baseColor = mix(baseColor, uShallowColor * 1.2, smoothstep(0.0, 0.15, vWaveHeight) * 0.3);
+        // 2. Fresnel & Reflections
+        float fresnel = pow(1.0 - max(0.0, dot(normal, viewDir)), 5.0);
+        vec3 reflection = mix(uShallowColor, uSkyColor, fresnel);
 
+        // 3. Depth-Aware Color
+        // Simulate absorption: peaks are lighter, valleys are darker
+        float absorption = smoothstep(-0.2, 0.5, vWaveHeight);
+        vec3 baseColor = mix(uDeepColor, uShallowColor, absorption);
 
-        // --- 3. Specular / Reflection (PBR-ish) ---
+        // 4. Procedural Caustics
+        float caustic = snoise(vec3(vWorldPosition.xz * 2.0 - vec2(uTime * 0.5), uTime * 0.2)) * 0.5 + 0.5;
+        caustic = pow(caustic, 4.0);
+        baseColor += caustic * uCausticIntensity * uShallowColor;
+
+        // 5. User Interaction Highlight
+        baseColor += vec3(0.5, 0.8, 1.0) * max(0.0, vInteraction) * 0.5;
+
+        // 6. Final Composition
+        vec3 color = mix(baseColor, reflection, fresnel * 0.7);
+        
+        // Specular highlight
         vec3 lightDir = normalize(uSunDirection);
         vec3 halfVec = normalize(lightDir + viewDir);
+        float specular = pow(max(0.0, dot(normal, halfVec)), 128.0);
+        color += specular * 0.8;
 
-        // Blinn-Phong Specular
-        float NdotH = max(0.0, dot(normal, halfVec));
-        
-        // Roughness variation: Break up the highlight using noise
-        float roughness = 0.3 + (n1 * 0.5 + 0.5) * 0.2; // 0.3 to 0.5 roughness
-        float specularExponent = 2.0 / (roughness * roughness * roughness * roughness) - 2.0;
-        specularExponent = clamp(specularExponent, 10.0, 200.0); // Clamp to avoid infinite/zero
-        
-        float specular = pow(NdotH, specularExponent);
-        
-        // Energy conservation approximate: rougher = dimmer
-        float specularIntensity = 1.0 / (roughness * 50.0);
-        
-        // Clamp heavily to avoid "blown out" white
-        specular = min(specular * specularIntensity * 2.0, 0.6); 
-
-
-        // --- 4. Fresnel Reflection ---
-        // Schlick's approximation
-        float F0 = 0.02; // Water is non-metallic, F0 is low (~0.02)
-        float fresnel = F0 + (1.0 - F0) * pow(1.0 - clamp(dot(viewDir, normal), 0.0, 1.0), 5.0);
-        
-        // Reduce Fresnel power slightly to avoid "chrome" look
-        fresnel *= 0.8;
-
-        // Reflection color: Mix Sky color with ambient
-        vec3 reflectionColor = uSkyColor;
-
-
-        // --- 5. Final Composition ---
-        // Diffuse (base) + Specular + Reflection
-        vec3 finalColor = baseColor;
-        
-        // Add Specular (Sun)
-        finalColor += vec3(1.0, 0.95, 0.8) * specular; 
-        
-        // Add Reflection (Sky)
-        // Only valid for upper hemisphere
-        if (normal.y > 0.0) {
-            finalColor = mix(finalColor, reflectionColor, fresnel);
-        }
-
-        // --- 6. Opacity ---
-        // More opaque at glancing angles (Fresnel), more transparent looking down
-        // But keep water mostly transparent-ish to see through users legs/pool tiles
-        float alpha = 0.5 + fresnel * 0.5;
-        
-        // No gamma correction needed in R3F usually (handled by canvas), but clamping safety
-        gl_FragColor = vec4(clamp(finalColor, 0.0, 1.0), clamp(alpha, 0.0, 1.0));
+        gl_FragColor = vec4(color, 0.8);
     }
     `
 );
 
-// 2. Extend/Register it
 extend({ WaterShaderMaterial });
 
-// 3. Declare Type for TS
 declare module '@react-three/fiber' {
     interface ThreeElements {
         waterShaderMaterial: any;
     }
 }
 
-// 4. Create the Component
 interface WaterPoolProps {
     geometry: THREE.BufferGeometry;
+    playerRigidBodyRef?: React.RefObject<any>;
     [key: string]: any;
 }
 
-export function WaterPool({ geometry, ...props }: WaterPoolProps) {
+export function WaterPool({ geometry, playerRigidBodyRef, ...props }: WaterPoolProps) {
     const materialRef = useRef<any>(null);
 
     useFrame((state) => {
         if (materialRef.current) {
             materialRef.current.uTime = state.clock.elapsedTime;
+            
+            if (playerRigidBodyRef?.current) {
+                const pos = playerRigidBodyRef.current.translation();
+                materialRef.current.uPlayerPos.set(pos.x, pos.y, pos.z);
+            }
         }
     });
 
     return (
         <group {...props}>
-            <mesh
-                geometry={geometry}
-                receiveShadow
-            >
+            <mesh geometry={geometry} receiveShadow>
                 <waterShaderMaterial
                     ref={materialRef}
                     transparent

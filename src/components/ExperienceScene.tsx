@@ -19,10 +19,9 @@ enum Controls {
     sprint = 'sprint',
 }
 
-const Player = () => {
+const Player = ({ rigidBodyRef }: { rigidBodyRef: React.RefObject<RapierRigidBody | null> }) => {
     const [, get] = useKeyboardControls<Controls>()
     const { camera } = useThree();
-    const rigidBodyRef = useRef<RapierRigidBody>(null);
     const direction = useRef(new THREE.Vector3())
 
     // Mobile controls
@@ -171,6 +170,8 @@ interface ExperienceSceneProps {
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 
 export const ExperienceScene = ({ onLock, onUnlock, isMobile = false, isSoundEnabled }: ExperienceSceneProps) => {
+    const playerRigidBodyRef = useRef<RapierRigidBody>(null);
+
     return (
         <>
             {/* Sunset Atmosphere */}
@@ -220,9 +221,9 @@ export const ExperienceScene = ({ onLock, onUnlock, isMobile = false, isSoundEna
                 gravity={[0, -9.81, 0]}
                 timeStep={isMobile ? 1/30 : 1/60}
             >
-                <Player />
+                <Player rigidBodyRef={playerRigidBodyRef} />
                 <group scale={[1, 1, 1]} position={[0, 0, 0]}>
-                    <SceneModel isSoundEnabled={isSoundEnabled} />
+                    <SceneModel isSoundEnabled={isSoundEnabled} playerRigidBodyRef={playerRigidBodyRef} />
                 </group>
             </Physics>
         </>

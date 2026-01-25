@@ -17,15 +17,6 @@ gsap.registerPlugin(ScrollTrigger);
 
 export const dynamic = "force-static";
 
-// Debug info interface
-interface DebugInfo {
-    progress: number;
-    phase: string;
-    position: { x: number; y: number; z: number };
-    rotation: { x: number; y: number; z: number };
-    scale: { x: number; y: number; z: number };
-}
-
 // Camera Path Configuration
 const CAMERA_PATH_CONFIG = {
     initial: { x: 0, y: 7, z: 12 },
@@ -39,7 +30,7 @@ const CAMERA_PATH_CONFIG = {
 };
 
 // Animated wrapper component for the Penthouse
-const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => void, onLoadingStart: () => void }) => {
+const AnimatedPenthouse = (props: any & { onLoadingStart: () => void }) => {
     const groupRef = useRef<THREE.Group>(null);
     const { camera } = useThree(); // Access the camera
 
@@ -70,25 +61,6 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
 
                     // Update Leva - REMOVED
                     // set({ currentPhase: phase });
-
-                    // Update debug info - tracking CAMERA now
-                    if (props.onDebugUpdate && groupRef.current) {
-                        props.onDebugUpdate({
-                            progress: Math.round(progress * 100),
-                            phase,
-                            position: {
-                                x: parseFloat(camera.position.x.toFixed(2)),
-                                y: parseFloat(camera.position.y.toFixed(2)),
-                                z: parseFloat(camera.position.z.toFixed(2)),
-                            },
-                            rotation: {
-                                x: parseFloat(camera.rotation.x.toFixed(2)),
-                                y: parseFloat(camera.rotation.y.toFixed(2)),
-                                z: parseFloat(camera.rotation.z.toFixed(2)),
-                            },
-                            scale: { x: 1, y: 1, z: 1 }, // Scale is constant now
-                        });
-                    }
 
                     if (self.progress > 0.9) {
                         props.onLoadingStart();
@@ -188,14 +160,8 @@ const AnimatedPenthouse = (props: any & { onDebugUpdate?: (info: DebugInfo) => v
 };
 
 const PenthouseWrapper = () => {
-    const [showDebug, setShowDebug] = useState(false);
-    const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
-
-    const handleDebugUpdate = (info: DebugInfo) => {
-        setDebugInfo(info);
-    };
 
     const handleLoadingStart = () => {
         if (!isLoading) {
@@ -205,71 +171,6 @@ const PenthouseWrapper = () => {
 
     return (
         <div style={{ height: "400vh", position: "relative" }}> {/* Add scrollable height */}
-            {/* Simple Debug Panel */}
-            <div style={{
-                position: "fixed",
-                top: "20px",
-                right: "20px",
-                zIndex: 1000,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-                gap: "10px"
-            }}>
-                <button
-                    onClick={() => setShowDebug(!showDebug)}
-                    style={{
-                        padding: "8px 16px",
-                        background: "rgba(0,0,0,0.7)",
-                        color: "white",
-                        border: "1px solid rgba(255,255,255,0.2)",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                        backdropFilter: "blur(5px)"
-                    }}
-                >
-                    {showDebug ? "Hide Debug" : "Show Debug"}
-                </button>
-
-                {showDebug && debugInfo && (
-                    <div style={{
-                        background: "rgba(0,0,0,0.8)",
-                        padding: "15px",
-                        borderRadius: "12px",
-                        color: "#eee",
-                        width: "250px",
-                        fontFamily: "monospace",
-                        fontSize: "12px",
-                        backdropFilter: "blur(10px)",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
-                    }}>
-                        <div style={{ marginBottom: "10px", color: "#88c0d0", fontWeight: "bold" }}>
-                            {debugInfo.phase}
-                        </div>
-
-                        <div style={{ marginBottom: "5px" }}>Position:</div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "5px", marginBottom: "10px", color: "#a3be8c" }}>
-                            <span>X: {debugInfo.position.x}</span>
-                            <span>Y: {debugInfo.position.y}</span>
-                            <span>Z: {debugInfo.position.z}</span>
-                        </div>
-
-                        <div style={{ marginBottom: "5px" }}>Rotation:</div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "5px", color: "#ebcb8b" }}>
-                            <span>X: {debugInfo.rotation.x}</span>
-                            <span>Y: {debugInfo.rotation.y}</span>
-                            <span>Z: {debugInfo.rotation.z}</span>
-                        </div>
-
-                        <div style={{ marginTop: "10px", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "5px", color: "#666" }}>
-                            Progress: {debugInfo.progress}%
-                        </div>
-                    </div>
-                )}
-            </div>
-
             <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%" }}>
                 <Canvas style={{ width: "100vw", height: "100vh" }}>
                     <ambientLight intensity={0.5} />
@@ -280,7 +181,6 @@ const PenthouseWrapper = () => {
                         <AnimatedPenthouse
                             position={[0, 5, 0]}
                             scale={[0.3, 0.3, 0.3]}
-                            onDebugUpdate={handleDebugUpdate}
                             onLoadingStart={handleLoadingStart}
                         />
                     </Suspense>

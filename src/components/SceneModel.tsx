@@ -21,7 +21,7 @@ type GLTFResult = GLTF & {
     }
 }
 
-export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boolean }) {
+export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boolean; playerRigidBodyRef?: React.RefObject<any> }) {
     const { nodes, materials } = useGLTF('/models/scene.glb') as unknown as GLTFResult
 
     // Animation refs for shaders
@@ -439,7 +439,7 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_48.geometry}
-                    material={materials.Material}
+                    material={materials.light2}
                 />
                 <mesh
                     castShadow
@@ -464,6 +464,18 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                     receiveShadow
                     geometry={nodes.Object_48004.geometry}
                     material={materials['Marble Ceramic']}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_48005.geometry}
+                    material={materials.metal2}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_48006.geometry}
+                    material={materials.light}
                 />
                 <mesh
                     castShadow
@@ -559,7 +571,7 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_61.geometry}
-                    material={materials['Calacatta Quartz Stone Marble']}
+                    material={materials.IhanMarble}
                 />
                 <mesh
                     castShadow
@@ -577,13 +589,13 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_64.geometry}
-                    material={materials.lavabo_006___mat_metalbasique001sg}
+                    material={materials.metal2}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_65.geometry}
-                    material={materials['Calacatta Quartz Stone Marble']}
+                    material={materials.IhanMarble}
                 />
                 <mesh
                     castShadow
@@ -595,7 +607,7 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_67.geometry}
-                    material={materials['Calacatta Quartz Stone Marble']}
+                    material={materials.IhanMarble}
                 />
                 <mesh
                     castShadow
@@ -690,14 +702,32 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                 <mesh
                     castShadow
                     receiveShadow
-                    geometry={nodes.Object_8005.geometry}
-                    material={materials['Calacatta Quartz Stone Marble']}
+                    geometry={nodes.Object_8006.geometry}
+                    material={materials['Material.002']}
                 />
                 <mesh
                     castShadow
                     receiveShadow
-                    geometry={nodes.Object_8006.geometry}
-                    material={materials['Material.002']}
+                    geometry={nodes.Object_8007.geometry}
+                    material={materials.IhanMarble}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_8008.geometry}
+                    material={materials.IhanMarble}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_8009.geometry}
+                    material={materials.bathtub}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_8010.geometry}
+                    material={materials.light2}
                 />
                 <mesh
                     castShadow
@@ -791,7 +821,7 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_94.geometry}
-                    material={materials['Calacatta Quartz Stone Marble']}
+                    material={materials.IhanMarble}
                 />
                 <mesh
                     castShadow
@@ -813,8 +843,15 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                     geometry={nodes.pine_trees.geometry}
                     material={materials.cypres___mat_cypres_feuille}
                 />
-                {/* Replaced Water Pool with Custom Component */}
-                <WaterPool geometry={nodes.pool_water.geometry} />
+                <RigidBody type="fixed" colliders="trimesh">
+                    <mesh
+                        castShadow
+                        receiveShadow
+                        geometry={nodes.pool.geometry}
+                        material={materials.poolTiles}
+                    />
+                </RigidBody>
+                <WaterPool geometry={nodes.pool_water.geometry} playerRigidBodyRef={props.playerRigidBodyRef} />
                 <mesh
                     castShadow
                     receiveShadow
@@ -839,19 +876,6 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                     geometry={nodes.tv_screen_2.geometry}
                     material={materials['mirror.nocompress']}
                 />
-                <mesh
-                    ref={tvScreenRef}
-                    castShadow
-                    receiveShadow
-                    geometry={nodes.tv_screen_screen.geometry}
-                    material={materials['mirror.nocompress']}
-                >
-                    <meshBasicMaterial
-                        map={videoTexture}
-                        toneMapped={true}
-                    />
-                    <positionalAudio ref={audioRef} args={[listener]} position={audioPos} />
-                </mesh>
                 <RigidBody type="fixed" colliders="trimesh">
                     <mesh
                         castShadow
@@ -860,6 +884,24 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                         material={materials['Dirty Plaster']}
                     />
                 </RigidBody>
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.tv_screen_screen.geometry}
+                    material={materials['mirror.nocompress']}
+                    ref={tvScreenRef}
+                >
+                    {/* Only mount audio and video texture if sound is enabled or we're in the scene to manage resources efficiently */}
+                    <meshBasicMaterial map={videoTexture} toneMapped={false} />
+                    {props.isSoundEnabled && (
+                        <positionalAudio
+                            ref={audioRef}
+                            args={[listener]}
+                            position={audioPos}
+                            loop
+                        />
+                    )}
+                </mesh>
             </group>
             <RigidBody type="fixed" colliders="trimesh">
                 <mesh
