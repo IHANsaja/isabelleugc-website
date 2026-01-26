@@ -2,13 +2,15 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { Environment, PointerLockControls, useKeyboardControls, PerspectiveCamera } from "@react-three/drei";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 import { SceneModel } from "@/components/SceneModel";
 import { stopWindGrassSound } from "@/utils/audioManager";
 import { Physics, RigidBody, CapsuleCollider } from "@react-three/rapier";
 import type { RapierRigidBody } from "@react-three/rapier";
 import { useMobileControls } from "@/context/MobileControlsContext";
+import { WindEffect } from "@/components/WindEffect";
+import { useTVInteraction } from "@/context/TVInteractionContext";
 
 enum Controls {
     forward = 'forward',
@@ -22,6 +24,7 @@ enum Controls {
 const Player = ({ rigidBodyRef }: { rigidBodyRef: React.RefObject<RapierRigidBody | null> }) => {
     const [, get] = useKeyboardControls<Controls>()
     const { camera } = useThree();
+    const { isLookingAtTV, isPanelOpen } = useTVInteraction();
     const direction = useRef(new THREE.Vector3())
 
     // Mobile controls
@@ -134,7 +137,9 @@ const Player = ({ rigidBodyRef }: { rigidBodyRef: React.RefObject<RapierRigidBod
         }
 
         // Jumping - check if on ground (low Y velocity)
-        if (jump && canJumpRef.current && Math.abs(currentVel.y) < 0.1) {
+        // Suppress jump if focused on TV
+        const isFocusedOnTV = isLookingAtTV || isPanelOpen;
+        if (jump && !isFocusedOnTV && canJumpRef.current && Math.abs(currentVel.y) < 0.1) {
             rigidBodyRef.current.applyImpulse({ x: 0, y: JUMP_FORCE, z: 0 }, true);
             canJumpRef.current = false;
             setTimeout(() => { canJumpRef.current = true; }, 500); // Cooldown
@@ -171,12 +176,40 @@ import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 
 export const ExperienceScene = ({ onLock, onUnlock, isMobile = false, isSoundEnabled }: ExperienceSceneProps) => {
     const playerRigidBodyRef = useRef<RapierRigidBody>(null);
+    const floorBounds = useRef<THREE.Box3 | null>(null);
+    const isWindActive = useRef(false);
+    const [, forceUpdate] = useState({});
+
+    useFrame((state) => {
+        if (!playerRigidBodyRef.current || !floorBounds.current) return;
+
+        const playerPos = playerRigidBodyRef.current.translation();
+        
+        // Spatial check: is player outside the indoor floor bounds?
+        // We use a small horizontal margin (padding) to ensure it triggers correctly at the doors
+        const indoorPadding = 0.2; 
+        const isInside = (
+            playerPos.x >= floorBounds.current.min.x + indoorPadding &&
+            playerPos.x <= floorBounds.current.max.x - indoorPadding &&
+            playerPos.z >= floorBounds.current.min.z + indoorPadding &&
+            playerPos.z <= floorBounds.current.max.z - indoorPadding
+        );
+
+        const shouldWindBeActive = !isInside;
+
+        if (isWindActive.current !== shouldWindBeActive) {
+            isWindActive.current = shouldWindBeActive;
+            forceUpdate({});
+        }
+    });
 
     return (
         <>
             {/* Sunset Atmosphere */}
             <color attach="background" args={['#1a1010']} />
             <fogExp2 attach="fog" args={['#1a1010', 0.02]} />
+
+            <WindEffect enabled={isSoundEnabled && isWindActive.current} />
 
             {/* Warm Key Light (Sun) */}
             <directionalLight 
@@ -223,7 +256,11 @@ export const ExperienceScene = ({ onLock, onUnlock, isMobile = false, isSoundEna
             >
                 <Player rigidBodyRef={playerRigidBodyRef} />
                 <group scale={[1, 1, 1]} position={[0, 0, 0]}>
-                    <SceneModel isSoundEnabled={isSoundEnabled} playerRigidBodyRef={playerRigidBodyRef} />
+                    <SceneModel 
+                        isSoundEnabled={isSoundEnabled} 
+                        playerRigidBodyRef={playerRigidBodyRef} 
+                        onBoundsLoaded={(bounds) => { floorBounds.current = bounds; }}
+                    />
                 </group>
             </Physics>
         </>

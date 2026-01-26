@@ -21,7 +21,11 @@ type GLTFResult = GLTF & {
     }
 }
 
-export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boolean; playerRigidBodyRef?: React.RefObject<any> }) {
+export function SceneModel(props: ThreeElements['group'] & { 
+    isSoundEnabled: boolean; 
+    playerRigidBodyRef?: React.RefObject<any>;
+    onBoundsLoaded?: (bounds: THREE.Box3) => void;
+}) {
     const { nodes, materials } = useGLTF('/models/scene.glb') as unknown as GLTFResult
 
     // Animation refs for shaders
@@ -66,7 +70,6 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                 const size = new THREE.Vector3();
                 bbox.getSize(size);
 
-                // Determine dominant axes for planar projection
                 const axes = [
                     { idx: 0, size: size.x },
                     { idx: 1, size: size.y },
@@ -96,13 +99,26 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                 geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
                 geometry.attributes.uv.needsUpdate = true;
 
-                // Calculate center for audio positioning
                 const center = new THREE.Vector3();
                 bbox.getCenter(center);
                 setAudioPos([center.x, center.y, center.z]);
             }
         }
-    }, [nodes]);
+
+        // Get indoor floor bounds for spatial wind logic - use world coordinates
+        if (nodes.floor && nodes.floor.geometry) {
+            nodes.floor.geometry.computeBoundingBox();
+            const bbox = nodes.floor.geometry.boundingBox;
+            if (bbox) {
+                // Ensure world matrix is up to date
+                nodes.floor.updateMatrixWorld(true);
+                const worldBox = bbox.clone().applyMatrix4(nodes.floor.matrixWorld);
+                if (props.onBoundsLoaded) {
+                    props.onBoundsLoaded(worldBox);
+                }
+            }
+        }
+    }, [nodes, props.onBoundsLoaded]);
 
     const videoTexture = useVideoTexture('/videos/T.mp4', {
         unsuspend: 'canplay',
@@ -128,7 +144,7 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
     }, [camera, listener])
 
     React.useEffect(() => {
-        if (audioRef.current && videoTexture.image instanceof HTMLVideoElement) {
+        if (props.isSoundEnabled && audioRef.current && videoTexture.image instanceof HTMLVideoElement) {
             const video = videoTexture.image as any
 
             // Check if source already exists on the video element
@@ -147,9 +163,14 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                 audioRef.current.setRefDistance(1) // Reduced distance for faster falloff
                 audioRef.current.setRolloffFactor(1) // Gentler rolloff
                 audioRef.current.setVolume(0.5) // Reduced volume
+                
+                // Ensure audio context is running
+                if (audioRef.current.context.state === 'suspended') {
+                    audioRef.current.context.resume();
+                }
             }
         }
-    }, [videoTexture])
+    }, [videoTexture, props.isSoundEnabled])
 
     // Expose video element to context and sync mute state
     React.useEffect(() => {
@@ -888,9 +909,29 @@ export function SceneModel(props: ThreeElements['group'] & { isSoundEnabled: boo
                 >
                     {/* Only mount audio and video texture if sound is enabled or we're in the scene to manage resources efficiently */}
                     <meshBasicMaterial map={videoTexture} toneMapped={false} />
-                    {props.isSoundEnabled && (
+                     {props.isSoundEnabled && (
                         <positionalAudio
-                            ref={audioRef}
+                            ref={(el) => {
+                                // @ts-ignore
+                                audioRef.current = el;
+                                if (el && videoTexture.image instanceof HTMLVideoElement) {
+                                    const video = videoTexture.image as any;
+                                    if (!video._audioSource) {
+                                        try {
+                                            video._audioSource = el.context.createMediaElementSource(video);
+                                        } catch (e) { }
+                                    }
+                                    if (video._audioSource) {
+                                        el.setNodeSource(video._audioSource);
+                                        el.setRefDistance(1);
+                                        el.setRolloffFactor(1);
+                                        el.setVolume(0.5);
+                                        if (el.context.state === 'suspended') {
+                                            el.context.resume();
+                                        }
+                                    }
+                                }
+                            }}
                             args={[listener]}
                             position={audioPos}
                             loop

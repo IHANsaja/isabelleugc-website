@@ -3,6 +3,7 @@
 
 let experienceBackgroundMusic: HTMLAudioElement | null = null;
 let windGrassSound: HTMLAudioElement | null = null;
+let wind1Sound: HTMLAudioElement | null = null;
 let landingIntroMusic: HTMLAudioElement | null = null;
 let isGlobalMuted: boolean = true;
 
@@ -10,6 +11,7 @@ export const setGlobalMute = (muted: boolean) => {
     isGlobalMuted = muted;
     if (experienceBackgroundMusic) experienceBackgroundMusic.muted = muted;
     if (windGrassSound) windGrassSound.muted = muted;
+    if (wind1Sound) wind1Sound.muted = muted;
     if (landingIntroMusic) landingIntroMusic.muted = muted;
 };
 
@@ -132,9 +134,42 @@ export const stopWindGrassSound = () => {
     }
 };
 
+export const startWind1Sound = () => {
+    if (typeof window !== "undefined" && !wind1Sound) {
+        wind1Sound = new Audio('/sounds/SFX/wind1.mp3');
+        wind1Sound.loop = true;
+        wind1Sound.volume = 0;
+        wind1Sound.muted = isGlobalMuted;
+
+        connectSourceToAnalyser(wind1Sound);
+
+        wind1Sound.play().catch(e => console.warn("Audio: wind1Sound play failed:", e));
+    } else if (wind1Sound && wind1Sound.paused) {
+        wind1Sound.play().catch(() => { });
+    }
+};
+
+export const setWind1Volume = (volume: number) => {
+    if (wind1Sound) {
+        const targetVol = Math.max(0, Math.min(0.4, volume));
+        wind1Sound.volume = targetVol;
+    }
+};
+
+export const getWind1Volume = () => wind1Sound ? wind1Sound.volume : 0;
+
+export const stopWind1Sound = () => {
+    if (wind1Sound) {
+        wind1Sound.pause();
+        wind1Sound.currentTime = 0;
+        wind1Sound = null;
+    }
+};
+
 export const stopAllAudio = () => {
     stopExperienceBackgroundMusic();
     stopWindGrassSound();
+    stopWind1Sound();
     stopLandingIntroMusic();
 };
 

@@ -32,7 +32,7 @@ enum Controls {
 
 // Inner component that uses TV context
 function ExperienceContent({ isLocked }: { isLocked: boolean }) {
-    const { isLookingAtTV, isPanelOpen, togglePanel, setIsPanelOpen } = useTVInteraction();
+    const { isLookingAtTV, isPanelOpen, togglePanel, setIsPanelOpen, videoElement } = useTVInteraction();
     const { isMobile } = useMobileControls();
 
     // Exit pointer lock when panel opens so user can interact with UI
@@ -55,6 +55,20 @@ function ExperienceContent({ isLocked }: { isLocked: boolean }) {
                     setIsPanelOpen(false);
                 } else if (isLocked && isLookingAtTV) {
                     togglePanel();
+                }
+            }
+
+            // Space key for TV Play/Pause
+            if (e.key === ' ' || e.code === 'Space') {
+                if (isPanelOpen || (isLocked && isLookingAtTV)) {
+                    if (videoElement) {
+                        e.preventDefault(); // Prevent jump
+                        if (videoElement.paused) {
+                            videoElement.play().catch(() => {});
+                        } else {
+                            videoElement.pause();
+                        }
+                    }
                 }
             }
         };
