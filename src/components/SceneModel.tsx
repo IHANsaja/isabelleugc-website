@@ -460,7 +460,7 @@ export function SceneModel(props: ThreeElements['group'] & {
                     castShadow
                     receiveShadow
                     geometry={nodes.Object_48.geometry}
-                    material={materials.light}
+                    material={materials.light2}
                 />
                 <mesh
                     castShadow
@@ -491,6 +491,12 @@ export function SceneModel(props: ThreeElements['group'] & {
                     receiveShadow
                     geometry={nodes.Object_48005.geometry}
                     material={materials.metal2}
+                />
+                <mesh
+                    castShadow
+                    receiveShadow
+                    geometry={nodes.Object_48006.geometry}
+                    material={materials.light}
                 />
 
                 <mesh
