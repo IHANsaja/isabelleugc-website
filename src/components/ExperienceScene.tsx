@@ -1,7 +1,7 @@
 "use client";
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { Environment, PointerLockControls, useKeyboardControls, PerspectiveCamera } from "@react-three/drei";
+import { Environment, PointerLockControls, useKeyboardControls, PerspectiveCamera, BakeShadows, SoftShadows } from "@react-three/drei";
 import { useRef, useEffect, useState, useCallback } from "react";
 import * as THREE from "three";
 import { SceneModel } from "@/components/SceneModel";
@@ -244,15 +244,19 @@ export const ExperienceScene = ({ onLock, onUnlock, isMobile = false, isSoundEna
 
             <Environment preset="sunset" background={false} blur={0.5} />
 
-            {/* Post Processing "Render View" Look */}
-            <EffectComposer enableNormalPass={false}>
+            {/* Bake static shadows for performance, adjust quality with SoftShadows */}
+            <BakeShadows />
+            {!isMobile && <SoftShadows size={2.5} samples={16} focus={0.5} />}
+
+            {/* Post Processing "Render View" Look - Optimized */}
+            <EffectComposer enableNormalPass={false} multisampling={isMobile ? 0 : 4}>
                 <Bloom 
-                    luminanceThreshold={1} 
+                    luminanceThreshold={1.2} 
                     mipmapBlur 
-                    intensity={1.5} 
-                    radius={0.4}
+                    intensity={isMobile ? 0.75 : 1.25} 
+                    radius={0.3}
                 />
-                <Vignette offset={0.3} darkness={0.7} />
+                <Vignette offset={0.4} darkness={0.6} />
             </EffectComposer>
 
             {/* Camera starts at human eye level */}
@@ -276,6 +280,7 @@ export const ExperienceScene = ({ onLock, onUnlock, isMobile = false, isSoundEna
                 <group scale={[1, 1, 1]} position={[0, 0, 0]}>
                     <SceneModel 
                         isSoundEnabled={isSoundEnabled} 
+                        isMobile={isMobile}
                         playerRigidBodyRef={playerRigidBodyRef} 
                         onBoundsLoaded={(bounds) => { floorBounds.current = bounds; }}
                     />

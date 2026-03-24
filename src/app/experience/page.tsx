@@ -6,7 +6,7 @@ import { KeyboardControls } from "@react-three/drei";
 import { Suspense, useEffect, useState, useCallback } from "react";
 import ExperienceOverlay from "@/components/ExperienceOverlay";
 import ExperienceTransitionLoader from "@/components/ExperienceTransitionLoader";
-import { useProgress } from "@react-three/drei";
+import { useProgress, PerformanceMonitor, AdaptiveDpr, AdaptiveEvents, Preload } from "@react-three/drei";
 import NavigationHUD from "@/components/NavigationHUD";
 import TVControlPanel from "@/components/TVControlPanel";
 import MobileJoystick from "@/components/MobileJoystick";
@@ -120,6 +120,7 @@ export default function ExperiencePage() {
     const [isLocked, setIsLocked] = useState(false);
     const [canLock, setCanLock] = useState(true);
     const [isMobileDevice, setIsMobileDevice] = useState(false);
+    const [dpr, setDpr] = useState(1.2); // Start with balanced DPR
     const router = useRouter();
 
     // Detect mobile
@@ -197,15 +198,26 @@ export default function ExperiencePage() {
                         <Canvas
                             id="experience-canvas"
                             style={{ width: "100%", height: "100%" }}
-                            dpr={isMobileDevice ? [0.5, 1] : [1, 2]}
+                            dpr={dpr}
                             performance={{ min: 0.5 }}
                             gl={{
                                 powerPreference: "high-performance",
-                                antialias: !isMobileDevice,
+                                antialias: false,
                                 stencil: false,
                                 depth: true,
+                                alpha: false,
+                                logarithmicDepthBuffer: !isMobileDevice,
                             }}
                         >
+                            <PerformanceMonitor 
+                                onIncline={() => setDpr(2)} 
+                                onDecline={() => setDpr(1)}
+                                flipflops={3}
+                                onFallback={() => setDpr(0.75)}
+                            />
+                            <AdaptiveDpr pixelated />
+                            <AdaptiveEvents />
+                            
                             <Suspense fallback={null}>
                                 <ExperienceScene
                                     onLock={handleLock}
@@ -214,6 +226,7 @@ export default function ExperiencePage() {
                                     isSoundEnabled={isSoundEnabled}
                                     onReady={handleSceneReady}
                                 />
+                                <Preload all />
                             </Suspense>
                         </Canvas>
 
