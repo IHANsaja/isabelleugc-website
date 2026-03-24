@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Canvas } from "@react-three/fiber";
 import { KeyboardControls } from "@react-three/drei";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import ExperienceOverlay from "@/components/ExperienceOverlay";
 import ExperienceTransitionLoader from "@/components/ExperienceTransitionLoader";
 import { useProgress } from "@react-three/drei";
@@ -163,14 +163,10 @@ export default function ExperiencePage() {
 
     const { isSoundEnabled } = useSound();
 
-    // Track when loading is finished
-    useEffect(() => {
-        if (progress === 100) {
-            // Small buffer to ensure render and prevent flickering
-            const timer = setTimeout(() => setIsSceneReady(true), 500);
-            return () => clearTimeout(timer);
-        }
-    }, [progress]);
+    // Track when scene has actually rendered its first frame
+    const handleSceneReady = useCallback(() => {
+        setIsSceneReady(true);
+    }, []);
 
     // Handle lock with cooldown to prevent double-click freeze
     const handleLock = () => {
@@ -197,7 +193,7 @@ export default function ExperiencePage() {
         <MobileControlsProvider>
             <TVInteractionProvider>
                 <KeyboardControls map={map}>
-                    <div className="experience-page" style={{ width: "100vw", height: "100vh", background: "#000" }}>
+                    <div className="experience-page" style={{ width: "100vw", height: "100vh", background: "#1a1010" }}>
                         <Canvas
                             id="experience-canvas"
                             style={{ width: "100%", height: "100%" }}
@@ -216,6 +212,7 @@ export default function ExperiencePage() {
                                     onUnlock={handleUnlock}
                                     isMobile={isMobileDevice}
                                     isSoundEnabled={isSoundEnabled}
+                                    onReady={handleSceneReady}
                                 />
                             </Suspense>
                         </Canvas>

@@ -2,7 +2,7 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { Environment, PointerLockControls, useKeyboardControls, PerspectiveCamera } from "@react-three/drei";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import * as THREE from "three";
 import { SceneModel } from "@/components/SceneModel";
 import { stopWindGrassSound } from "@/utils/audioManager";
@@ -170,15 +170,33 @@ interface ExperienceSceneProps {
     onUnlock: () => void;
     isMobile?: boolean;
     isSoundEnabled: boolean;
+    onReady?: () => void;
 }
 
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 
-export const ExperienceScene = ({ onLock, onUnlock, isMobile = false, isSoundEnabled }: ExperienceSceneProps) => {
+export const ExperienceScene = ({ onLock, onUnlock, isMobile = false, isSoundEnabled, onReady }: ExperienceSceneProps) => {
     const playerRigidBodyRef = useRef<RapierRigidBody>(null);
     const floorBounds = useRef<THREE.Box3 | null>(null);
     const isWindActive = useRef(false);
     const [, forceUpdate] = useState({});
+    const hasSignaledReady = useRef(false);
+
+    // Signal readiness after the first frame is actually rendered
+    const onReadyStable = useCallback(() => {
+        if (onReady && !hasSignaledReady.current) {
+            hasSignaledReady.current = true;
+            onReady();
+        }
+    }, [onReady]);
+
+    useFrame(() => {
+        if (!hasSignaledReady.current) {
+            // This runs after Three.js has rendered the first frame,
+            // meaning the scene is truly visible on screen
+            onReadyStable();
+        }
+    });
 
     useFrame((state) => {
         if (!playerRigidBodyRef.current || !floorBounds.current) return;

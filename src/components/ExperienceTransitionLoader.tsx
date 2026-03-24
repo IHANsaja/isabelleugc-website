@@ -109,7 +109,7 @@ const ExperienceTransitionLoader: React.FC<ExperienceTransitionLoaderProps> = ({
         if (isFinished && containerRef.current) {
             gsap.to(containerRef.current, {
                 opacity: 0,
-                duration: 1,
+                duration: 0.6,
                 ease: "power2.inOut",
                 onComplete: () => {
                     if (onComplete) onComplete();
